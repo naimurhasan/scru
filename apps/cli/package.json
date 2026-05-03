@@ -1,0 +1,14 @@
+{
+  "name": "@scru/cli",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "serp": "node src/search.ts",
+    "typecheck": "tsc -p tsconfig.json"
+  },
+  "dependencies": {
+    "@scru/fetcher": "workspace:*",
+    "@scru/parser": "workspace:*"
+  }
+}
