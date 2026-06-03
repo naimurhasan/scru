@@ -1,5 +1,5 @@
 import { calculateCredits } from "@scru/core";
-import type { ActiveApiKey } from "@scru/db";
+import type { RequestActor } from "@scru/db";
 import type { ApiDeps } from "../deps.ts";
 import { ApiError } from "../errors/ApiError.ts";
 import type { GoogleSearchRequest, GoogleSearchResponse } from "./schemas.ts";
@@ -26,11 +26,11 @@ const insufficientCredits = (cost: number): GoogleSearchExecution => ({
 
 export const executeGoogleSearch = async (
   deps: Pick<ApiDeps, "searchGoogle" | "chargeCredits">,
-  apiKey: ActiveApiKey,
+  actor: RequestActor,
   request: GoogleSearchRequest,
 ): Promise<GoogleSearchExecution> => {
   const cost = calculateCredits({ pages: 1, mode: "sync" });
-  if (apiKey.credits < cost) return insufficientCredits(cost);
+  if (actor.credits < cost) return insufficientCredits(cost);
 
   const outcome = await deps.searchGoogle({
     query: request.query,
@@ -52,7 +52,7 @@ export const executeGoogleSearch = async (
     };
   }
 
-  const creditsRemaining = await deps.chargeCredits(apiKey.workspaceId, cost);
+  const creditsRemaining = await deps.chargeCredits(actor.workspaceId, cost);
   if (creditsRemaining === null) return insufficientCredits(cost);
 
   return {

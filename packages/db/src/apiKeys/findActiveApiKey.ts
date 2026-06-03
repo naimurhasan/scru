@@ -1,17 +1,12 @@
 import { and, eq, isNull } from "drizzle-orm";
 import type { Database } from "../client.ts";
+import type { RequestActor } from "../requestActor.ts";
 import { apiKeys, workspaces } from "../schema.ts";
-
-export type ActiveApiKey = {
-  apiKeyId: string;
-  workspaceId: string;
-  credits: number;
-};
 
 export const findActiveApiKey = async (
   db: Database,
   keyHash: string,
-): Promise<ActiveApiKey | null> => {
+): Promise<RequestActor | null> => {
   const [found] = await db
     .select({
       apiKeyId: apiKeys.id,

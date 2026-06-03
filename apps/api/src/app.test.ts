@@ -6,6 +6,8 @@ import type { ErrorBody } from "./errors/toErrorBody.ts";
 import type { GoogleSearchResponse } from "./google/schemas.ts";
 
 const apiKey = { apiKeyId: "key-1", workspaceId: "workspace-1", credits: 100 };
+const config = { internalToken: "internal-token-for-tests-only" };
+const workspaceId = "0b8f7a52-6c1d-4a0e-9d3b-2f4e5a6b7c8d";
 
 const result: GoogleSearchResponse["result"] = {
   organicResults: [
@@ -30,6 +32,10 @@ const found: SearchOutcome = {
 
 const createDeps = () => ({
   findApiKey: vi.fn<ApiDeps["findApiKey"]>(async () => apiKey),
+  findWorkspaceActor: vi.fn<ApiDeps["findWorkspaceActor"]>(async () => ({
+    ...apiKey,
+    apiKeyId: null,
+  })),
   chargeCredits: vi.fn<ApiDeps["chargeCredits"]>(async () => 95),
   recordRequest: vi.fn<ApiDeps["recordRequest"]>(async () => undefined),
   searchGoogle: vi.fn<ApiDeps["searchGoogle"]>(async () => found),
@@ -40,7 +46,7 @@ const search = (
   body: unknown,
   headers: Record<string, string> = { Authorization: "Bearer scru_test" },
 ) =>
-  createApp(deps).request("/v1/monitor/google", {
+  createApp(deps, config).request("/v1/monitor/google", {
     method: "POST",
     headers: { "Content-Type": "application/json", ...headers },
     body: typeof body === "string" ? body : JSON.stringify(body),
@@ -204,23 +210,86 @@ describe("POST /v1/monitor/google", () => {
   });
 });
 
+describe("dashboard requests", () => {
+  const internal = (token: string, workspace: string) => ({
+    "X-Internal-Token": token,
+    "X-Workspace-Id": workspace,
+  });
+
+  it("runs a search for a workspace without an API key", async () => {
+    const deps = createDeps();
+    const response = await search(
+      deps,
+      { query: "best crm" },
+      internal(config.internalToken, workspaceId),
+    );
+
+    expect(response.status).toBe(200);
+    expect(deps.findWorkspaceActor).toHaveBeenCalledWith(workspaceId);
+    expect(deps.findApiKey).not.toHaveBeenCalled();
+    expect(deps.recordRequest.mock.calls[0]?.[0]).toMatchObject({
+      apiKeyId: null,
+      httpStatus: 200,
+    });
+  });
+
+  it("rejects a wrong internal token", async () => {
+    const deps = createDeps();
+    const response = await search(
+      deps,
+      { query: "best crm" },
+      internal("not-the-token", workspaceId),
+    );
+
+    expect(response.status).toBe(401);
+    expect(deps.findWorkspaceActor).not.toHaveBeenCalled();
+  });
+
+  it("rejects a malformed workspace id before touching the database", async () => {
+    const deps = createDeps();
+    const response = await search(
+      deps,
+      { query: "best crm" },
+      internal(config.internalToken, "1; drop table workspaces"),
+    );
+
+    expect(response.status).toBe(401);
+    expect(deps.findWorkspaceActor).not.toHaveBeenCalled();
+  });
+
+  it("rejects an unknown workspace", async () => {
+    const deps = createDeps();
+    deps.findWorkspaceActor.mockResolvedValue(null);
+    const response = await search(
+      deps,
+      { query: "best crm" },
+      internal(config.internalToken, workspaceId),
+    );
+
+    expect(response.status).toBe(401);
+    expect(deps.searchGoogle).not.toHaveBeenCalled();
+  });
+});
+
 describe("other routes", () => {
   it("answers the health check without a key", async () => {
-    const response = await createApp(createDeps()).request("/health");
+    const response = await createApp(createDeps(), config).request("/health");
 
     expect(response.status).toBe(200);
     expect(await response.json()).toEqual({ status: "ok" });
   });
 
   it("returns the error envelope for an unknown route", async () => {
-    const response = await createApp(createDeps()).request("/nope");
+    const response = await createApp(createDeps(), config).request("/nope");
 
     expect(response.status).toBe(404);
     expect((await errorOf(response)).code).toBe("NOT_FOUND");
   });
 
   it("publishes the OpenAPI document", async () => {
-    const response = await createApp(createDeps()).request("/openapi.json");
+    const response = await createApp(createDeps(), config).request(
+      "/openapi.json",
+    );
 
     expect(response.status).toBe(200);
     expect(await response.json()).toMatchObject({

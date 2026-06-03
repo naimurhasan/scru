@@ -4,6 +4,7 @@ import { workspaces } from "../schema.ts";
 export type NewWorkspace = {
   name: string;
   credits: number;
+  ownerId?: string;
 };
 
 export const createWorkspace = async (

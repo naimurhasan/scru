@@ -7,6 +7,7 @@ import {
   timestamp,
   uuid,
 } from "drizzle-orm/pg-core";
+import { user } from "./authSchema.ts";
 
 const createdAt = () =>
   timestamp("created_at", { withTimezone: true }).notNull().defaultNow();
@@ -15,6 +16,9 @@ export const workspaces = pgTable("workspaces", {
   id: uuid("id").primaryKey().defaultRandom(),
   name: text("name").notNull(),
   credits: integer("credits").notNull().default(0),
+  ownerId: text("owner_id")
+    .unique()
+    .references(() => user.id, { onDelete: "cascade" }),
   createdAt: createdAt(),
 });
 

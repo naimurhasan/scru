@@ -14,3 +14,4 @@ export type {
   SearchFailureReason,
   SearchOutcome,
 } from "./search/types.ts";
+export { isSameSecret } from "./secrets/isSameSecret.ts";
