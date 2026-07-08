@@ -18,7 +18,30 @@ export {
   listRequestLogs,
   type RequestLogSummary,
 } from "./requestLogs/listRequestLogs.ts";
-export { apiKeys, requestLogs, workspaces } from "./schema.ts";
+export {
+  apiKeys,
+  requestLogs,
+  tasks,
+  webhookDeliveries,
+  workspaces,
+} from "./schema.ts";
+export { createTask, type NewTask, type Task } from "./tasks/createTask.ts";
+export { findTask } from "./tasks/findTask.ts";
+export { markTaskProcessing } from "./tasks/markTaskProcessing.ts";
+export { settleTask, type SettledTask } from "./tasks/settleTask.ts";
+export {
+  findWebhookDelivery,
+  type PendingWebhookDelivery,
+} from "./webhooks/findWebhookDelivery.ts";
+export {
+  listWebhookDeliveries,
+  type WebhookDelivery,
+} from "./webhooks/listWebhookDeliveries.ts";
+export {
+  recordWebhookAttempt,
+  type WebhookAttempt,
+} from "./webhooks/recordWebhookAttempt.ts";
+export { saveWebhookUrl } from "./webhooks/saveWebhookUrl.ts";
 export { chargeCredits } from "./workspaces/chargeCredits.ts";
 export {
   createWorkspace,

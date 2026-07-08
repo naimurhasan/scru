@@ -1,7 +1,7 @@
 import type { GoogleSearchJob, SearchOutcome } from "@scru/core";
 import { Worker } from "bullmq";
 import { createRedisConnection } from "./createRedisConnection.ts";
-import { SEARCH_QUEUE } from "./searchQueue.ts";
+import { SEARCH_QUEUE } from "./queueNames.ts";
 
 export type SearchProcessor = (job: {
   data: GoogleSearchJob;

@@ -3,8 +3,7 @@ import type { RequestActor } from "@scru/db";
 import type { ApiDeps } from "../deps.ts";
 import { ApiError } from "../errors/ApiError.ts";
 import type { GoogleSearchRequest, GoogleSearchResponse } from "./schemas.ts";
-
-const LANGUAGE = "en";
+import { toSearchJob } from "./toSearchJob.ts";
 
 export type GoogleSearchExecution =
   | {
@@ -32,12 +31,7 @@ export const executeGoogleSearch = async (
   const cost = calculateCredits({ pages: 1, mode: "sync" });
   if (actor.credits < cost) return insufficientCredits(cost);
 
-  const outcome = await deps.searchGoogle({
-    query: request.query,
-    country: request.country,
-    language: LANGUAGE,
-    includeHtml: request.include.html,
-  });
+  const outcome = await deps.searchGoogle(toSearchJob(request, null));
   if (!outcome.ok) {
     const timedOut = outcome.reason === "timeout";
     return {

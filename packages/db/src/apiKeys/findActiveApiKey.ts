@@ -12,6 +12,7 @@ export const findActiveApiKey = async (
       apiKeyId: apiKeys.id,
       workspaceId: workspaces.id,
       credits: workspaces.credits,
+      concurrencyLimit: workspaces.concurrencyLimit,
     })
     .from(apiKeys)
     .innerJoin(workspaces, eq(workspaces.id, apiKeys.workspaceId))

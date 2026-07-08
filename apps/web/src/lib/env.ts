@@ -7,6 +7,7 @@ const envSchema = z.object({
   INTERNAL_API_TOKEN: z.string().min(24),
   BETTER_AUTH_SECRET: z.string().min(24),
   BETTER_AUTH_URL: z.url(),
+  WEBHOOK_ALLOW_PRIVATE: z.enum(["true", "false"]).default("false"),
 });
 
 export const env = envSchema.parse(process.env);

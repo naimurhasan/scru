@@ -4,9 +4,9 @@ import type { ApiConfig, ApiDeps, ApiEnv } from "./deps.ts";
 import { ApiError } from "./errors/ApiError.ts";
 import { toApiError } from "./errors/toApiError.ts";
 import { toErrorBody } from "./errors/toErrorBody.ts";
-import { executeGoogleSearch } from "./google/executeGoogleSearch.ts";
-import { googleSearchRoute } from "./google/googleSearchRoute.ts";
-import { toRequestLog } from "./google/toRequestLog.ts";
+import { registerGoogleSearch } from "./google/registerGoogleSearch.ts";
+import { enforceRateLimit } from "./limits/enforceRateLimit.ts";
+import { registerTaskRoutes } from "./tasks/registerTaskRoutes.ts";
 
 export const createApp = (deps: ApiDeps, config: ApiConfig) => {
   const app = new OpenAPIHono<ApiEnv>({
@@ -14,7 +14,7 @@ export const createApp = (deps: ApiDeps, config: ApiConfig) => {
       if (!result.success)
         throw new ApiError(
           "VALIDATION_ERROR",
-          "The request body is invalid",
+          "The request is invalid",
           result.error.issues.map(({ path, message }) => ({
             field: path.join("."),
             message,
@@ -51,26 +51,10 @@ export const createApp = (deps: ApiDeps, config: ApiConfig) => {
   });
 
   app.use("/v1/*", authenticate(deps, config));
+  app.use("/v1/*", enforceRateLimit(deps.limits));
 
-  app.openapi(googleSearchRoute, async (c) => {
-    const actor = c.get("actor");
-    const request = c.req.valid("json");
-    const startedAt = Date.now();
-    const execution = await executeGoogleSearch(deps, actor, request);
-    await deps.recordRequest(
-      toRequestLog({
-        actor,
-        request,
-        execution,
-        durationMs: Date.now() - startedAt,
-        now: new Date(),
-      }),
-    );
-    if (!execution.ok) throw execution.error;
-    c.header("X-Credits-Charged", String(execution.creditsCharged));
-    c.header("X-Credits-Remaining", String(execution.creditsRemaining));
-    return c.json(execution.body, 200);
-  });
+  registerGoogleSearch(app, deps);
+  registerTaskRoutes(app, deps, config);
 
   return app;
 };

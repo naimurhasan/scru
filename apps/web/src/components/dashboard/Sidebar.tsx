@@ -1,4 +1,10 @@
-import { Activity, BarChart3, FlaskConical, KeyRound } from "lucide-react";
+import {
+  Activity,
+  BarChart3,
+  FlaskConical,
+  KeyRound,
+  Webhook,
+} from "lucide-react";
 import { SignOutButton } from "@/components/auth/SignOutButton";
 import { SidebarLink } from "@/components/dashboard/SidebarLink";
 
@@ -29,6 +35,10 @@ export function Sidebar({ workspaceName, credits, email }: SidebarProps) {
         <SidebarLink href="/dashboard/api-keys">
           <KeyRound />
           API keys
+        </SidebarLink>
+        <SidebarLink href="/dashboard/webhooks">
+          <Webhook />
+          Webhooks
         </SidebarLink>
         <SidebarLink href="/dashboard/logs">
           <Activity />

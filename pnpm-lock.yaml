@@ -132,6 +132,9 @@ importers:
       '@scru/core':
         specifier: workspace:*
         version: link:../../packages/core
+      '@scru/db':
+        specifier: workspace:*
+        version: link:../../packages/db
       '@scru/fetcher':
         specifier: workspace:*
         version: link:../../packages/fetcher

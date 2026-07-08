@@ -8,7 +8,11 @@ export const findWorkspaceActor = async (
   workspaceId: string,
 ): Promise<RequestActor | null> => {
   const [workspace] = await db
-    .select({ workspaceId: workspaces.id, credits: workspaces.credits })
+    .select({
+      workspaceId: workspaces.id,
+      credits: workspaces.credits,
+      concurrencyLimit: workspaces.concurrencyLimit,
+    })
     .from(workspaces)
     .where(eq(workspaces.id, workspaceId))
     .limit(1);

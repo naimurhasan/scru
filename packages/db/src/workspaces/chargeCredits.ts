@@ -1,9 +1,9 @@
 import { and, eq, gte, sql } from "drizzle-orm";
-import type { Database } from "../client.ts";
+import type { Executor } from "../client.ts";
 import { workspaces } from "../schema.ts";
 
 export const chargeCredits = async (
-  db: Database,
+  db: Executor,
   workspaceId: string,
   amount: number,
 ): Promise<number | null> => {
