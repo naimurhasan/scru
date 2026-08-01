@@ -4,12 +4,12 @@ import {
   directRoute,
   fetchGoogleSearch,
 } from "@scru/fetcher";
-import { parseGoogleSearch } from "@scru/parser";
+import { parseGoogleSearchPages } from "@scru/parser";
 
-const [query, country = "US"] = process.argv.slice(2);
+const [query, country = "US", pages = "1"] = process.argv.slice(2);
 
 if (!query) {
-  console.error('Usage: pnpm serp "<query>" [country]');
+  console.error('Usage: pnpm serp "<query>" [country] [pages]');
   process.exit(1);
 }
 
@@ -21,14 +21,23 @@ const provider = createCloakBrowserProvider({
 });
 
 try {
-  const page = await fetchGoogleSearch(
+  const fetched = await fetchGoogleSearch(
     provider,
-    { query, country, language: "en", timeoutMs: 30_000 },
+    {
+      query,
+      country,
+      language: "en",
+      pages: Number(pages),
+      timeoutMs: 30_000,
+    },
     { attempts: 2, backoffMs: 5_000 },
   );
   console.log(
     JSON.stringify(
-      { success: true, result: parseGoogleSearch(page.html) },
+      {
+        success: true,
+        result: parseGoogleSearchPages(fetched.map(({ html }) => html)),
+      },
       null,
       2,
     ),

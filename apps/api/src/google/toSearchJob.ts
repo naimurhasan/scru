@@ -10,6 +10,7 @@ export const toSearchJob = (
   query: request.query,
   country: request.country,
   language: LANGUAGE,
+  pages: request.pages,
   includeHtml: request.include.html,
   taskId,
 });

@@ -12,6 +12,11 @@ const RETENTION = {
   removeOnFail: { age: KEEP_FAILED_SECONDS },
 };
 
+const EXTRA_PAGE_TIMEOUT_MS = 30_000;
+
+const waitBudget = (timeoutMs: number, pages: number) =>
+  timeoutMs + EXTRA_PAGE_TIMEOUT_MS * Math.max(pages - 1, 0);
+
 const isWaitTimeout = (error: unknown) =>
   error instanceof Error && error.message.includes("timed out");
 
@@ -29,7 +34,10 @@ export const createSearchClient = (redisUrl: string, timeoutMs: number) => {
     searchGoogle: async (job: GoogleSearchJob): Promise<SearchOutcome> => {
       const queued = await queue.add("search", job, RETENTION);
       try {
-        return await queued.waitUntilFinished(events, timeoutMs);
+        return await queued.waitUntilFinished(
+          events,
+          waitBudget(timeoutMs, job.pages),
+        );
       } catch (error) {
         if (!isWaitTimeout(error)) throw error;
         await queued.remove().catch(() => undefined);

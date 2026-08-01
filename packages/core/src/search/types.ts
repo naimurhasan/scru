@@ -4,6 +4,7 @@ export type GoogleSearchJob = {
   query: string;
   country: string;
   language: string;
+  pages: number;
   includeHtml: boolean;
   taskId: string | null;
 };
@@ -16,5 +17,10 @@ export type SearchFailureReason =
   | "timeout";
 
 export type SearchOutcome =
-  | { ok: true; result: GoogleSearchResult; html: string | null }
+  | {
+      ok: true;
+      result: GoogleSearchResult;
+      html: string | null;
+      pages: number;
+    }
   | { ok: false; reason: SearchFailureReason };

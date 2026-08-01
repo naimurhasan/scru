@@ -27,6 +27,7 @@ describe("POST /v1/monitor/google", () => {
       query: "best crm",
       country: "US",
       language: "en",
+      pages: 1,
       includeHtml: false,
       taskId: null,
     });

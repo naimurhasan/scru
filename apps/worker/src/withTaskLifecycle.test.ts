@@ -5,6 +5,7 @@ import { withTaskLifecycle, type TaskHooks } from "./withTaskLifecycle.ts";
 const found: SearchOutcome = {
   ok: true,
   html: null,
+  pages: 1,
   result: {
     organicResults: [],
     peopleAlsoAsk: [],
@@ -18,6 +19,7 @@ const job = (taskId: string | null): { data: GoogleSearchJob } => ({
     query: "best crm",
     country: "US",
     language: "en",
+    pages: 1,
     includeHtml: false,
     taskId,
   },

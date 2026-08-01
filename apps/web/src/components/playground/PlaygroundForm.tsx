@@ -54,12 +54,27 @@ export function PlaygroundForm({
               onChange={(country) => onChange({ ...request, country })}
             />
           </div>
+          <div className="grid gap-2">
+            <Label htmlFor="pages">Pages</Label>
+            <Input
+              id="pages"
+              type="number"
+              min={1}
+              max={10}
+              step={1}
+              required
+              value={request.pages}
+              onChange={(event) =>
+                onChange({ ...request, pages: event.target.valueAsNumber })
+              }
+            />
+          </div>
           <Button type="submit" disabled={pending}>
             {pending ? "Sending…" : "Send request"}
           </Button>
           <p className="text-xs text-muted-foreground">
-            A request costs 5 credits and takes about 15 seconds. Failed
-            requests are free.
+            The first page costs 5 credits and each extra page 2. A page takes
+            about 15 seconds. Failed requests are free.
           </p>
         </form>
       </CardContent>

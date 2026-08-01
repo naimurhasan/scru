@@ -36,10 +36,11 @@ export const result: GoogleSearchResponse["result"] = {
   knowledgePanel: null,
 };
 
-export const found: SearchOutcome = {
+export const found: Extract<SearchOutcome, { ok: true }> = {
   ok: true,
   result,
   html: "<html>results</html>",
+  pages: 1,
 };
 
 export const queuedTask: Task = {
@@ -50,7 +51,12 @@ export const queuedTask: Task = {
   status: "QUEUED",
   priority: 1,
   idempotencyKey: null,
-  payload: { query: "best crm", country: "US", include: { html: false } },
+  payload: {
+    query: "best crm",
+    country: "US",
+    pages: 1,
+    include: { html: false },
+  },
   result: null,
   errorCode: null,
   errorMessage: null,

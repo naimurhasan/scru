@@ -13,7 +13,7 @@ export const toTaskSettlement = (outcome: SearchOutcome): TaskSettlement =>
             ? outcome.result
             : { ...outcome.result, html: outcome.html },
         loggedResult: outcome.result,
-        cost: calculateCredits({ pages: 1, mode: "async" }),
+        cost: calculateCredits({ pages: outcome.pages, mode: "async" }),
       }
     : {
         ok: false,

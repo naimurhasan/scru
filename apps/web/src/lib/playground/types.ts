@@ -1,6 +1,7 @@
 export type PlaygroundRequest = {
   query: string;
   country: string;
+  pages: number;
 };
 
 export type PlaygroundResponse = {

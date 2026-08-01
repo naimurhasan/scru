@@ -28,8 +28,8 @@ export const executeGoogleSearch = async (
   actor: RequestActor,
   request: GoogleSearchRequest,
 ): Promise<GoogleSearchExecution> => {
-  const cost = calculateCredits({ pages: 1, mode: "sync" });
-  if (actor.credits < cost) return insufficientCredits(cost);
+  const estimate = calculateCredits({ pages: request.pages, mode: "sync" });
+  if (actor.credits < estimate) return insufficientCredits(estimate);
 
   const outcome = await deps.searchGoogle(toSearchJob(request, null));
   if (!outcome.ok) {
@@ -46,6 +46,7 @@ export const executeGoogleSearch = async (
     };
   }
 
+  const cost = calculateCredits({ pages: outcome.pages, mode: "sync" });
   const creditsRemaining = await deps.chargeCredits(actor.workspaceId, cost);
   if (creditsRemaining === null) return insufficientCredits(cost);
 
