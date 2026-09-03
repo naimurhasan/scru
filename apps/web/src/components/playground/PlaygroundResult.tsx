@@ -41,7 +41,11 @@ export function PlaygroundResult({
           </div>
           <TabsContent value="json">
             {finished ? (
-              <CodeBlock code={prettyJson(finished.response.body)} />
+              <CodeBlock
+                code={prettyJson(finished.response.body)}
+                label="Response"
+                language="json"
+              />
             ) : (
               <EmptyTab message={emptyMessage} />
             )}
@@ -54,7 +58,7 @@ export function PlaygroundResult({
             )}
           </TabsContent>
           <TabsContent value="code">
-            <CodeBlock code={curlSnippet} />
+            <CodeBlock code={curlSnippet} label="curl" />
           </TabsContent>
         </Tabs>
       </CardContent>
