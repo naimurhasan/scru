@@ -61,7 +61,7 @@ export default function ReferencePage() {
         <CodeBlock code="POST /v1/monitor/google" label="Endpoint" />
         <p>
           Runs the search and answers when the results are ready, usually in
-          about 15 seconds per page.
+          about a second.
         </p>
         <h3 className="font-medium">Body</h3>
         <FieldTable fields={SEARCH_REQUEST_FIELDS} />

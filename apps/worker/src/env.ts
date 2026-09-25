@@ -14,6 +14,7 @@ const envSchema = z.object({
   BROWSER_PROFILE_DIR: z.string().default(DEFAULT_PROFILE_DIR),
   BROWSER_HEADLESS: flag,
   WEBHOOK_ALLOW_PRIVATE: flag,
+  SESSION_POOL_SIZE: z.coerce.number().int().min(0).default(2),
 });
 
 export const loadEnv = (source: NodeJS.ProcessEnv = process.env) => {
@@ -24,5 +25,6 @@ export const loadEnv = (source: NodeJS.ProcessEnv = process.env) => {
     profileDir: env.BROWSER_PROFILE_DIR,
     headless: env.BROWSER_HEADLESS === "true",
     allowPrivateWebhooks: env.WEBHOOK_ALLOW_PRIVATE === "true",
+    sessionPoolSize: env.SESSION_POOL_SIZE,
   };
 };

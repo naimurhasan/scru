@@ -73,8 +73,8 @@ export function PlaygroundForm({
             {pending ? "Sending…" : "Send request"}
           </Button>
           <p className="text-xs text-muted-foreground">
-            The first page costs 5 credits and each extra page 2. A page takes
-            about 15 seconds. Failed requests are free.
+            The first page costs 5 credits and each extra page 2. Results
+            usually arrive in about a second. Failed requests are free.
           </p>
         </form>
       </CardContent>

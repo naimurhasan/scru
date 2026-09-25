@@ -42,8 +42,8 @@ export default function QuickstartPage() {
           })}
         />
         <p>
-          A search usually answers in about 15 seconds and costs 5 credits.
-          Failed requests are free.
+          A search usually answers in about a second and costs 5 credits. Failed
+          requests are free.
         </p>
       </DocsSection>
 

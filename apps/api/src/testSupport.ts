@@ -55,6 +55,7 @@ export const queuedTask: Task = {
     query: "best crm",
     country: "US",
     pages: 1,
+    resolveLinks: true,
     include: { html: false },
   },
   result: null,

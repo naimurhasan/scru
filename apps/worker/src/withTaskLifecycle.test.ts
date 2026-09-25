@@ -21,6 +21,8 @@ const job = (taskId: string | null): { data: GoogleSearchJob } => ({
     language: "en",
     pages: 1,
     includeHtml: false,
+    resolveLinks: true,
+    browserOnly: false,
     taskId,
   },
 });
