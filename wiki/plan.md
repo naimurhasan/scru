@@ -1,6 +1,6 @@
 # scru — plan draft
 
-Status: chapter 1 in progress. Steps 1 to 3 work end to end; step 4 (dashboard and playground) is next.
+Status: chapter 1 in progress. Steps 1 to 4 work end to end; step 5 (async, webhooks and limits) is next.
 
 ## Running it locally
 
@@ -8,7 +8,7 @@ Status: chapter 1 in progress. Steps 1 to 3 work end to end; step 4 (dashboard a
 pnpm db:up        # Postgres and Redis in Docker
 pnpm db:migrate   # create the tables
 pnpm db:seed      # once: a workspace with 500 credits, prints an API key
-pnpm dev          # API on http://localhost:4000 plus the browser worker
+pnpm dev          # dashboard on http://localhost:3000, API on http://localhost:4000, plus the browser worker
 ```
 
 ```bash
@@ -18,7 +18,7 @@ curl -X POST http://localhost:4000/v1/monitor/google \
   -d '{"query": "best crm tools for small businesses", "country": "US"}'
 ```
 
-The key from the first seed is saved as `SCRU_API_KEY` in `.env`. The OpenAPI document is at `/openapi.json`. Without the API, `pnpm serp "<query>" US` prints the same JSON from the terminal.
+Open http://localhost:3000, create an account and use the playground; new accounts get their own workspace with 500 credits. For curl, create a key on the API keys page. The key from the first seed is saved as `SCRU_API_KEY` in `.env` and belongs to a separate local workspace. Copy `.env.example` to `.env` and fill in the two secrets before the first run. The OpenAPI document is at `/openapi.json`. Without the API, `pnpm serp "<query>" US` prints the same JSON from the terminal.
 
 ## Progress
 
@@ -27,7 +27,7 @@ The key from the first seed is saved as `SCRU_API_KEY` in `.env`. The OpenAPI do
 | 1. Parser               | Done        | Organic results, People Also Ask questions, related searches, knowledge panel. Tested on two real pages                  |
 | 2. Fetcher              | Mostly done | Live pages fetched from this machine with CloakBrowser, block detection, retries. Pagination, mobile and bake-off remain |
 | 3. Sync API             | Done        | `POST /v1/monitor/google` with key auth, error envelope, credits charged on success only, request log, OpenAPI document  |
-| 4. Dashboard            | Not started |                                                                                                                          |
+| 4. Dashboard            | Done        | Sign-up and sign-in, overview, playground, API keys, logs. Webhooks page waits for step 5                                |
 | 5. Async                | Not started |                                                                                                                          |
 | 6. Public site and docs | Not started |                                                                                                                          |
 
@@ -48,6 +48,14 @@ What step 3 settled:
 - **Shape of the system:** the API puts every search on a Redis queue and waits for it; a separate worker owns the browser and runs one search at a time. Async endpoints in step 5 reuse that queue.
 - **Ownership:** keys, credits and logs belong to a workspace. Sign-in users will be attached to workspaces in step 4.
 - First live request through the API: 200 in 13 seconds, 8 organic results, 5 credits charged.
+
+What step 4 settled:
+
+- **Accounts:** email and password with Better Auth. Signing up creates a workspace with 500 credits owned by that user.
+- **Playground path:** the dashboard calls the same API endpoint as everyone else, authenticated by a shared internal token plus the workspace id, so playground requests are charged and logged like any other.
+- **Keys:** shown once at creation, stored as a hash, revocable. A revoked key is rejected on the next request.
+- **Pages read the database directly;** only the playground goes through the API.
+- Checked in a real browser: sign-up, wrong password, sign-out, key create and revoke, and a live playground search (200 in 14.9 seconds, 5 credits).
 
 Still open in step 2:
 

@@ -3,6 +3,7 @@ import {
   chargeCredits,
   createDatabase,
   findActiveApiKey,
+  findWorkspaceActor,
   insertRequestLog,
 } from "@scru/db";
 import { createSearchClient } from "@scru/queue";
@@ -13,13 +14,18 @@ const env = loadEnv();
 const database = createDatabase(env.databaseUrl);
 const searchClient = createSearchClient(env.redisUrl, env.syncTimeoutMs);
 
-const app = createApp({
-  findApiKey: (keyHash) => findActiveApiKey(database.db, keyHash),
-  chargeCredits: (workspaceId, amount) =>
-    chargeCredits(database.db, workspaceId, amount),
-  recordRequest: (log) => insertRequestLog(database.db, log),
-  searchGoogle: searchClient.searchGoogle,
-});
+const app = createApp(
+  {
+    findApiKey: (keyHash) => findActiveApiKey(database.db, keyHash),
+    findWorkspaceActor: (workspaceId) =>
+      findWorkspaceActor(database.db, workspaceId),
+    chargeCredits: (workspaceId, amount) =>
+      chargeCredits(database.db, workspaceId, amount),
+    recordRequest: (log) => insertRequestLog(database.db, log),
+    searchGoogle: searchClient.searchGoogle,
+  },
+  { internalToken: env.internalToken },
+);
 
 const server = serve({ fetch: app.fetch, port: env.port }, ({ port }) =>
   console.log(`API listening on http://localhost:${port}`),

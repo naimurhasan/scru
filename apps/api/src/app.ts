@@ -1,6 +1,6 @@
 import { OpenAPIHono } from "@hono/zod-openapi";
-import { requireApiKey } from "./auth/requireApiKey.ts";
-import type { ApiDeps, ApiEnv } from "./deps.ts";
+import { authenticate } from "./auth/authenticate.ts";
+import type { ApiConfig, ApiDeps, ApiEnv } from "./deps.ts";
 import { ApiError } from "./errors/ApiError.ts";
 import { toApiError } from "./errors/toApiError.ts";
 import { toErrorBody } from "./errors/toErrorBody.ts";
@@ -8,7 +8,7 @@ import { executeGoogleSearch } from "./google/executeGoogleSearch.ts";
 import { googleSearchRoute } from "./google/googleSearchRoute.ts";
 import { toRequestLog } from "./google/toRequestLog.ts";
 
-export const createApp = (deps: ApiDeps) => {
+export const createApp = (deps: ApiDeps, config: ApiConfig) => {
   const app = new OpenAPIHono<ApiEnv>({
     defaultHook: (result) => {
       if (!result.success)
@@ -50,16 +50,16 @@ export const createApp = (deps: ApiDeps) => {
     info: { title: "scru API", version: "1.0.0" },
   });
 
-  app.use("/v1/*", requireApiKey(deps.findApiKey));
+  app.use("/v1/*", authenticate(deps, config));
 
   app.openapi(googleSearchRoute, async (c) => {
-    const apiKey = c.get("apiKey");
+    const actor = c.get("actor");
     const request = c.req.valid("json");
     const startedAt = Date.now();
-    const execution = await executeGoogleSearch(deps, apiKey, request);
+    const execution = await executeGoogleSearch(deps, actor, request);
     await deps.recordRequest(
       toRequestLog({
-        apiKey,
+        actor,
         request,
         execution,
         durationMs: Date.now() - startedAt,

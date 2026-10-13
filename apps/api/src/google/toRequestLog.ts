@@ -1,4 +1,4 @@
-import type { ActiveApiKey, NewRequestLog } from "@scru/db";
+import type { NewRequestLog, RequestActor } from "@scru/db";
 import { toErrorBody } from "../errors/toErrorBody.ts";
 import type { GoogleSearchExecution } from "./executeGoogleSearch.ts";
 import type { GoogleSearchRequest } from "./schemas.ts";
@@ -6,7 +6,7 @@ import type { GoogleSearchRequest } from "./schemas.ts";
 const OK = 200;
 
 export type RequestLogInput = {
-  apiKey: ActiveApiKey;
+  actor: RequestActor;
   request: GoogleSearchRequest;
   execution: GoogleSearchExecution;
   durationMs: number;
@@ -16,14 +16,14 @@ export type RequestLogInput = {
 const withoutHtml = ({ html: _html, ...result }: { html?: string }) => result;
 
 export const toRequestLog = ({
-  apiKey,
+  actor,
   request,
   execution,
   durationMs,
   now,
 }: RequestLogInput): NewRequestLog => ({
-  workspaceId: apiKey.workspaceId,
-  apiKeyId: apiKey.apiKeyId,
+  workspaceId: actor.workspaceId,
+  apiKeyId: actor.apiKeyId,
   engine: "google",
   request,
   durationMs,
