@@ -1,5 +1,7 @@
 import type { GoogleSearchJob, SearchOutcome } from "@scru/core";
-import type { NewRequestLog, RequestActor } from "@scru/db";
+import type { NewRequestLog, NewTask, RequestActor, Task } from "@scru/db";
+import type { UsageLimiter } from "@scru/queue";
+import type { OpenAPIHono } from "@hono/zod-openapi";
 
 export type ApiDeps = {
   findApiKey: (keyHash: string) => Promise<RequestActor | null>;
@@ -10,10 +12,15 @@ export type ApiDeps = {
   ) => Promise<number | null>;
   recordRequest: (log: NewRequestLog) => Promise<void>;
   searchGoogle: (job: GoogleSearchJob) => Promise<SearchOutcome>;
+  createTask: (task: NewTask) => Promise<Task | null>;
+  findTask: (workspaceId: string, taskId: string) => Promise<Task | null>;
+  enqueueTask: (job: GoogleSearchJob, priority: number) => Promise<void>;
+  limits: UsageLimiter;
 };
 
 export type ApiConfig = {
   internalToken: string;
+  allowPrivateWebhooks: boolean;
 };
 
 export type ApiEnv = {
@@ -21,3 +28,5 @@ export type ApiEnv = {
     actor: RequestActor;
   };
 };
+
+export type ApiApp = OpenAPIHono<ApiEnv>;

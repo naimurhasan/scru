@@ -1,6 +1,6 @@
 # scru — plan draft
 
-Status: chapter 1 in progress. Steps 1 to 4 work end to end; step 5 (async, webhooks and limits) is next.
+Status: chapter 1 in progress. Steps 1 to 5 work end to end. Left in chapter 1: the public site and docs (step 6) and the fetcher gaps from step 2.
 
 ## Running it locally
 
@@ -27,8 +27,8 @@ Open http://localhost:3000, create an account and use the playground; new accoun
 | 1. Parser               | Done        | Organic results, People Also Ask questions, related searches, knowledge panel. Tested on two real pages                  |
 | 2. Fetcher              | Mostly done | Live pages fetched from this machine with CloakBrowser, block detection, retries. Pagination, mobile and bake-off remain |
 | 3. Sync API             | Done        | `POST /v1/monitor/google` with key auth, error envelope, credits charged on success only, request log, OpenAPI document  |
-| 4. Dashboard            | Done        | Sign-up and sign-in, overview, playground, API keys, logs. Webhooks page waits for step 5                                |
-| 5. Async                | Not started |                                                                                                                          |
+| 4. Dashboard            | Done        | Sign-up and sign-in, overview, playground, API keys, webhooks, logs                                                      |
+| 5. Async                | Done        | Async tasks with polling, signed webhooks with retries, rate and concurrency limits, Webhooks page                       |
 | 6. Public site and docs | Not started |                                                                                                                          |
 
 What the first live runs showed (13 Oct 2026, one home connection, no proxy):
@@ -56,6 +56,20 @@ What step 4 settled:
 - **Keys:** shown once at creation, stored as a hash, revocable. A revoked key is rejected on the next request.
 - **Pages read the database directly;** only the playground goes through the API.
 - Checked in a real browser: sign-up, wrong password, sign-out, key create and revoke, and a live playground search (200 in 14.9 seconds, 5 credits).
+
+What step 5 settled:
+
+- **Async tasks:** `POST /v1/async/task` takes `taskType`, `payload`, and optional `priority` (1 to 10), `idempotencyKey` and `webhook.url`, and answers 202 with a task. `GET /v1/async/task/{taskId}` returns its status: `QUEUED`, `PROCESSING`, `COMPLETED` or `FAILED`.
+- **Cost:** 3 credits, checked at submission and charged when the task completes. A failed task costs nothing. Sync requests jump ahead of queued tasks.
+- **Idempotency:** a repeated key in the same workspace answers 409 `CONFLICT`.
+- **Webhooks:** sent to the task’s own URL, or else the workspace’s default from the Webhooks page. The body is `{ event, task }` with event `task.completed` or `task.failed`. Up to 5 attempts with growing delays; redirects are not followed.
+- **Signature:** header `X-Scru-Signature: t=<unix time>,v1=<hex>`, the HMAC-SHA256 of `<time>.<body>` with the workspace’s signing secret.
+- **Private addresses** (localhost, 10.x, 192.168.x, cloud metadata and similar) are refused as webhook targets unless `WEBHOOK_ALLOW_PRIVATE=true`, which the local `.env` sets so webhooks can be tested on this machine. It must be off on any public deployment. The check is by hostname only, so a public name that resolves to a private address is not caught yet.
+- **Rate limit:** `RATE_LIMIT_PER_SECOND` (10) per workspace on every authenticated route, answering 429 `RATE_LIMITED` with `X-RateLimit-*` headers.
+- **Concurrency limit:** 2 sync searches in flight per workspace (a column on the workspace), answering 429 `CONCURRENCY_LIMIT_REACHED` with `X-Concurrency-*` headers. Async tasks do not use a slot.
+- **Where tasks finish:** the worker settles a task in one database transaction (status, credits, request log, planned webhook), so a restarted API cannot lose a result.
+- Checked live: a task went from queued to completed for 3 credits and its webhook arrived with a valid signature; a burst of 16 requests gave 10 accepted and 6 limited; a second sync search during a running one was refused.
+- Not built: batch submission, clearing the queue, and cleaning up a task if queuing fails right after it is saved.
 
 Still open in step 2:
 

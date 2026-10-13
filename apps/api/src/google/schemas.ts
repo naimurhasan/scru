@@ -51,15 +51,3 @@ export const googleSearchResponseSchema = z
   .openapi("GoogleSearchResponse");
 
 export type GoogleSearchResponse = z.infer<typeof googleSearchResponseSchema>;
-
-export const errorResponseSchema = z
-  .object({
-    success: z.literal(false),
-    error: z.object({
-      code: z.string(),
-      message: z.string(),
-      details: z.unknown().optional(),
-      timestamp: z.string(),
-    }),
-  })
-  .openapi("Error");

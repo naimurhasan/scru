@@ -1,59 +1,15 @@
-import type { SearchOutcome } from "@scru/core";
 import { describe, expect, it, vi } from "vitest";
 import { createApp } from "./app.ts";
-import type { ApiDeps } from "./deps.ts";
-import type { ErrorBody } from "./errors/toErrorBody.ts";
 import type { GoogleSearchResponse } from "./google/schemas.ts";
-
-const apiKey = { apiKeyId: "key-1", workspaceId: "workspace-1", credits: 100 };
-const config = { internalToken: "internal-token-for-tests-only" };
-const workspaceId = "0b8f7a52-6c1d-4a0e-9d3b-2f4e5a6b7c8d";
-
-const result: GoogleSearchResponse["result"] = {
-  organicResults: [
-    {
-      position: 1,
-      title: "Best CRM",
-      link: "https://crm.org/best",
-      snippet: "A guide",
-      page: 1,
-    },
-  ],
-  peopleAlsoAsk: [{ question: "What is a CRM?" }],
-  relatedSearches: [{ query: "free crm" }],
-  knowledgePanel: null,
-};
-
-const found: SearchOutcome = {
-  ok: true,
+import {
+  actor,
+  config,
+  createDeps,
+  errorOf,
   result,
-  html: "<html>results</html>",
-};
-
-const createDeps = () => ({
-  findApiKey: vi.fn<ApiDeps["findApiKey"]>(async () => apiKey),
-  findWorkspaceActor: vi.fn<ApiDeps["findWorkspaceActor"]>(async () => ({
-    ...apiKey,
-    apiKeyId: null,
-  })),
-  chargeCredits: vi.fn<ApiDeps["chargeCredits"]>(async () => 95),
-  recordRequest: vi.fn<ApiDeps["recordRequest"]>(async () => undefined),
-  searchGoogle: vi.fn<ApiDeps["searchGoogle"]>(async () => found),
-});
-
-const search = (
-  deps: ApiDeps,
-  body: unknown,
-  headers: Record<string, string> = { Authorization: "Bearer scru_test" },
-) =>
-  createApp(deps, config).request("/v1/monitor/google", {
-    method: "POST",
-    headers: { "Content-Type": "application/json", ...headers },
-    body: typeof body === "string" ? body : JSON.stringify(body),
-  });
-
-const errorOf = async (response: Response) =>
-  ((await response.json()) as ErrorBody).error;
+  search,
+  workspaceId,
+} from "./testSupport.ts";
 
 const successOf = async (response: Response) =>
   (await response.json()) as GoogleSearchResponse;
@@ -72,6 +28,7 @@ describe("POST /v1/monitor/google", () => {
       country: "US",
       language: "en",
       includeHtml: false,
+      taskId: null,
     });
     expect(deps.chargeCredits).toHaveBeenCalledWith("workspace-1", 5);
   });
@@ -145,7 +102,7 @@ describe("POST /v1/monitor/google", () => {
 
   it("refuses to search without enough credits", async () => {
     const deps = createDeps();
-    deps.findApiKey.mockResolvedValue({ ...apiKey, credits: 4 });
+    deps.findApiKey.mockResolvedValue({ ...actor, credits: 4 });
     const response = await search(deps, { query: "best crm" });
     const error = await errorOf(response);
 

@@ -1,14 +1,9 @@
 import { createRoute } from "@hono/zod-openapi";
+import { errorResponse } from "../errors/errorResponse.ts";
 import {
-  errorResponseSchema,
   googleSearchRequestSchema,
   googleSearchResponseSchema,
 } from "./schemas.ts";
-
-const errorResponse = (description: string) => ({
-  description,
-  content: { "application/json": { schema: errorResponseSchema } },
-});
 
 export const googleSearchRoute = createRoute({
   method: "post",
@@ -29,6 +24,7 @@ export const googleSearchRoute = createRoute({
     400: errorResponse("The request body is invalid"),
     401: errorResponse("The API key is missing, invalid or revoked"),
     403: errorResponse("The workspace does not have enough credits"),
+    429: errorResponse("The rate or concurrency limit was reached"),
     502: errorResponse("Google could not be fetched; nothing was charged"),
     504: errorResponse(
       "The search did not finish in time; nothing was charged",

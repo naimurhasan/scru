@@ -5,6 +5,7 @@ export type GoogleSearchJob = {
   country: string;
   language: string;
   includeHtml: boolean;
+  taskId: string | null;
 };
 
 export type SearchFailureReason =
