@@ -1,0 +1,18 @@
+{
+  "name": "@scru/fetcher",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "typecheck": "tsc -p tsconfig.json",
+    "capture": "node scripts/captureFixture.ts"
+  },
+  "dependencies": {
+    "cloakbrowser": "^0.6.2",
+    "playwright-core": "^1.64.0"
+  }
+}

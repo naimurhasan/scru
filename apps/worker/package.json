@@ -1,0 +1,18 @@
+{
+  "name": "@scru/worker",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node --env-file=../../.env src/main.ts",
+    "start": "node --env-file=../../.env src/main.ts",
+    "typecheck": "tsc -p tsconfig.json"
+  },
+  "dependencies": {
+    "@scru/core": "workspace:*",
+    "@scru/fetcher": "workspace:*",
+    "@scru/parser": "workspace:*",
+    "@scru/queue": "workspace:*",
+    "zod": "^4.6.6"
+  }
+}
