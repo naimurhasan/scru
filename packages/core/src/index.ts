@@ -15,6 +15,7 @@ export type {
   SearchOutcome,
 } from "./search/types.ts";
 export { isSameSecret } from "./secrets/isSameSecret.ts";
+export type { GoogleSession } from "./sessions/types.ts";
 export { toTaskSettlement } from "./tasks/toTaskSettlement.ts";
 export { toTaskView } from "./tasks/toTaskView.ts";
 export {

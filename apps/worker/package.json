@@ -15,6 +15,7 @@
     "@scru/parser": "workspace:*",
     "@scru/queue": "workspace:*",
     "zod": "^4.6.6",
-    "@scru/db": "workspace:*"
+    "@scru/db": "workspace:*",
+    "@scru/search": "workspace:*"
   }
 }

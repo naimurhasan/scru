@@ -23,6 +23,7 @@ export const googleSearchRequestSchema = z
       .max(MAX_PAGES)
       .default(1)
       .openapi({ example: 1 }),
+    resolveLinks: z.boolean().default(true),
     include: z
       .object({ html: z.boolean().default(false) })
       .default({ html: false }),

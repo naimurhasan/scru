@@ -16,6 +16,7 @@
     "@scru/db": "workspace:*",
     "@scru/queue": "workspace:*",
     "hono": "^4.13.13",
-    "zod": "^4.6.6"
+    "zod": "^4.6.6",
+    "@scru/search": "workspace:*"
   }
 }

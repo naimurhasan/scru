@@ -1,5 +1,11 @@
 export { createSearchClient } from "./createSearchClient.ts";
 export {
+  createSessionPool,
+  DEFAULT_SESSION_POOL_OPTIONS,
+  type SessionPool,
+  type SessionPoolOptions,
+} from "./createSessionPool.ts";
+export {
   createSearchWorker,
   type SearchProcessor,
 } from "./createSearchWorker.ts";

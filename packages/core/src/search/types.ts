@@ -6,6 +6,8 @@ export type GoogleSearchJob = {
   language: string;
   pages: number;
   includeHtml: boolean;
+  resolveLinks: boolean;
+  browserOnly: boolean;
   taskId: string | null;
 };
 

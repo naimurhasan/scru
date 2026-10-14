@@ -22,6 +22,12 @@ export const SEARCH_REQUEST_FIELDS: DocField[] = [
       "How many result pages to fetch. Defaults to 1. Each extra page costs 2 credits.",
   },
   {
+    name: "resolveLinks",
+    type: "boolean",
+    description:
+      "Return each result's real address. Defaults to true. Set false for a faster answer with Google redirect links instead.",
+  },
+  {
     name: "include.html",
     type: "boolean",
     description: "Also return the raw HTML of the first page.",

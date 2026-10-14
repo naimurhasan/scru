@@ -31,6 +31,12 @@ Open http://localhost:3000, create an account and use the playground; new accoun
 | 5. Async                | Done  | Async tasks with polling, signed webhooks with retries, rate and concurrency limits, Webhooks page                      |
 | 6. Public site and docs | Done  | Landing page, pricing, quickstart and API reference at /, /pricing, /docs and /docs/reference                           |
 
+Fast path (15 Oct 2026):
+
+- The browser worker only harvests Google sessions (cookies plus its exact browser headers) into a Redis pool, keeping 2 ready. Searches reuse a session over plain HTTP with `impit`, impersonating the same Chrome version, and resolve result links in parallel.
+- A blocked session is dropped and that request falls back to the browser. Sessions also retire after 200 uses or 6 hours; the real limits are still unmeasured.
+- Live: about 0.55–1.1 s per search (1.5 s for the first, while connections open), 0.6 s with `resolveLinks: false`, 1.45 s for 3 pages. Before: about 13 s.
+
 What the first live runs showed (13 Oct 2026, one home connection, no proxy):
 
 - **Headless with a direct search URL was blocked on the first request** with Google's CAPTCHA page.

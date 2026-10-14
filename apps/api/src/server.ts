@@ -8,7 +8,12 @@ import {
   findWorkspaceActor,
   insertRequestLog,
 } from "@scru/db";
-import { createSearchClient, createUsageLimiter } from "@scru/queue";
+import {
+  createSearchClient,
+  createSessionPool,
+  createUsageLimiter,
+} from "@scru/queue";
+import { connectSessionSearch } from "@scru/search";
 import { createApp } from "./app.ts";
 import { loadEnv } from "./env.ts";
 
@@ -16,6 +21,11 @@ const env = loadEnv();
 const database = createDatabase(env.databaseUrl);
 const searchClient = createSearchClient(env.redisUrl, env.syncTimeoutMs);
 const usage = createUsageLimiter(env.redisUrl, env.rateLimitPerSecond);
+const sessions = createSessionPool(env.redisUrl);
+const searchGoogle = connectSessionSearch(
+  sessions.pool,
+  searchClient.searchGoogle,
+);
 
 const app = createApp(
   {
@@ -25,7 +35,7 @@ const app = createApp(
     chargeCredits: (workspaceId, amount) =>
       chargeCredits(database.db, workspaceId, amount),
     recordRequest: (log) => insertRequestLog(database.db, log),
-    searchGoogle: searchClient.searchGoogle,
+    searchGoogle,
     createTask: (task) => createTask(database.db, task),
     findTask: (workspaceId, taskId) =>
       findTask(database.db, workspaceId, taskId),
@@ -46,6 +56,7 @@ const shutdown = async () => {
   server.close();
   await searchClient.close();
   usage.close();
+  sessions.close();
   await database.close();
   process.exit(0);
 };

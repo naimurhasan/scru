@@ -12,5 +12,7 @@ export const toSearchJob = (
   language: LANGUAGE,
   pages: request.pages,
   includeHtml: request.include.html,
+  resolveLinks: request.resolveLinks,
+  browserOnly: false,
   taskId,
 });

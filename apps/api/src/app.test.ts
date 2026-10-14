@@ -29,6 +29,8 @@ describe("POST /v1/monitor/google", () => {
       language: "en",
       pages: 1,
       includeHtml: false,
+      resolveLinks: true,
+      browserOnly: false,
       taskId: null,
     });
     expect(deps.chargeCredits).toHaveBeenCalledWith("workspace-1", 5);
