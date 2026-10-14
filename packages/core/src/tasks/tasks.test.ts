@@ -59,7 +59,7 @@ describe("toTaskView", () => {
 
 describe("toTaskSettlement", () => {
   it("charges the async price for a successful search", () => {
-    const outcome: SearchOutcome = { ok: true, result, html: null };
+    const outcome: SearchOutcome = { ok: true, result, html: null, pages: 1 };
     expect(toTaskSettlement(outcome)).toEqual({
       ok: true,
       result,
@@ -68,8 +68,18 @@ describe("toTaskSettlement", () => {
     });
   });
 
+  it("adds two credits for every extra page that was fetched", () => {
+    const outcome: SearchOutcome = { ok: true, result, html: null, pages: 3 };
+    expect(toTaskSettlement(outcome)).toMatchObject({ cost: 7 });
+  });
+
   it("keeps the raw page in the result but out of the log", () => {
-    const outcome: SearchOutcome = { ok: true, result, html: "<html></html>" };
+    const outcome: SearchOutcome = {
+      ok: true,
+      result,
+      html: "<html></html>",
+      pages: 1,
+    };
     const settlement = toTaskSettlement(outcome);
     expect(settlement).toMatchObject({
       result: { ...result, html: "<html></html>" },

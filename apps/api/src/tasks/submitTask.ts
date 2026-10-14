@@ -14,7 +14,10 @@ export const submitTask = async (
   actor: RequestActor,
   request: SubmitTaskRequest,
 ): Promise<Task> => {
-  const cost = calculateCredits({ pages: 1, mode: "async" });
+  const cost = calculateCredits({
+    pages: request.payload.pages,
+    mode: "async",
+  });
   if (actor.credits < cost)
     throw new ApiError(
       "INSUFFICIENT_CREDITS",

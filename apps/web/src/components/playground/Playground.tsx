@@ -11,6 +11,7 @@ import type { PlaygroundRequest, PlaygroundRun } from "@/lib/playground/types";
 const INITIAL_REQUEST: PlaygroundRequest = {
   query: "best crm tools for small businesses",
   country: "US",
+  pages: 1,
 };
 
 export function Playground({ apiUrl }: { apiUrl: string }) {

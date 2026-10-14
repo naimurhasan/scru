@@ -1,6 +1,6 @@
 # scru — plan draft
 
-Status: chapter 1 in progress. Steps 1 to 5 work end to end. Left in chapter 1: the public site and docs (step 6) and the fetcher gaps from step 2.
+Status: chapter 1 in progress. Steps 1 to 5 work end to end, including pagination. Left in chapter 1: the public site and docs (step 6).
 
 ## Running it locally
 
@@ -22,14 +22,14 @@ Open http://localhost:3000, create an account and use the playground; new accoun
 
 ## Progress
 
-| Step                    | State       | Notes                                                                                                                    |
-| ----------------------- | ----------- | ------------------------------------------------------------------------------------------------------------------------ |
-| 1. Parser               | Done        | Organic results, People Also Ask questions, related searches, knowledge panel. Tested on two real pages                  |
-| 2. Fetcher              | Mostly done | Live pages fetched from this machine with CloakBrowser, block detection, retries. Pagination, mobile and bake-off remain |
-| 3. Sync API             | Done        | `POST /v1/monitor/google` with key auth, error envelope, credits charged on success only, request log, OpenAPI document  |
-| 4. Dashboard            | Done        | Sign-up and sign-in, overview, playground, API keys, webhooks, logs                                                      |
-| 5. Async                | Done        | Async tasks with polling, signed webhooks with retries, rate and concurrency limits, Webhooks page                       |
-| 6. Public site and docs | Not started |                                                                                                                          |
+| Step                    | State       | Notes                                                                                                                   |
+| ----------------------- | ----------- | ----------------------------------------------------------------------------------------------------------------------- |
+| 1. Parser               | Done        | Organic results, People Also Ask questions, related searches, knowledge panel. Tested on two real pages                 |
+| 2. Fetcher              | Done        | Live pages from this machine with CloakBrowser, block detection, retries, up to 10 pages per search                     |
+| 3. Sync API             | Done        | `POST /v1/monitor/google` with key auth, error envelope, credits charged on success only, request log, OpenAPI document |
+| 4. Dashboard            | Done        | Sign-up and sign-in, overview, playground, API keys, webhooks, logs                                                     |
+| 5. Async                | Done        | Async tasks with polling, signed webhooks with retries, rate and concurrency limits, Webhooks page                      |
+| 6. Public site and docs | Not started |                                                                                                                         |
 
 What the first live runs showed (13 Oct 2026, one home connection, no proxy):
 
@@ -42,8 +42,8 @@ What the first live runs showed (13 Oct 2026, one home connection, no proxy):
 
 What step 3 settled:
 
-- **Request:** `query`, `country` (default `US`) and `include.html`. `pages` and `device` are not accepted yet because the fetcher does not support them.
-- **Cost:** 3 credits per search plus 2 for a sync request, so 5. Failed fetches and timeouts cost nothing.
+- **Request:** `query`, `country` (default `US`), `pages` (1 to 10, default 1) and `include.html`, which returns the first page’s raw HTML.
+- **Cost:** 3 credits per search, 2 for each extra page, plus 2 for a sync request. One sync page is 5. Failed fetches and timeouts cost nothing.
 - **Errors:** `VALIDATION_ERROR` 400, `UNAUTHORIZED` 401, `INSUFFICIENT_CREDITS` 403, `NOT_FOUND` 404, `INTERNAL_ERROR` 500, `FETCH_FAILED` 502, `TIMEOUT` 504.
 - **Shape of the system:** the API puts every search on a Redis queue and waits for it; a separate worker owns the browser and runs one search at a time. Async endpoints in step 5 reuse that queue.
 - **Ownership:** keys, credits and logs belong to a workspace. Sign-in users will be attached to workspaces in step 4.
@@ -71,10 +71,17 @@ What step 5 settled:
 - Checked live: a task went from queued to completed for 3 credits and its webhook arrived with a valid signature; a burst of 16 requests gave 10 accepted and 6 limited; a second sync search during a running one was refused.
 - Not built: batch submission, clearing the queue, and cleaning up a task if queuing fails right after it is saved.
 
-Still open in step 2:
+What finishing step 2 settled (pagination, 13 Oct 2026):
 
-- Pagination (`pages` above 1) and the mobile device option.
-- The 20-query bake-off against Camoufox and Patchright. CloakBrowser has not been blocked in headed mode, so this is now a check on block rate at volume, not a blocker.
+- **Pagination works by clicking Google’s own Next link** after a short random pause, in the same tab. Three pages took 33 seconds; two pages through the API took 25 seconds and cost 7 credits.
+- **Positions run on across pages** and every result keeps its `page`. People Also Ask and related searches are merged without repeats. A result Google itself repeats on a later page is kept.
+- **You pay for pages that came back.** The balance check uses the pages requested; the charge uses the pages fetched. If a later page is blocked or does not exist, the earlier pages are returned.
+- **Mobile is not built, on purpose.** The stealth browser can only present itself as a Mac or Windows desktop. Pretending to be a phone on top of that gives Google a mismatch to detect, on a home connection. It needs a browser with a real mobile profile, so `device` is not accepted.
+- **People Also Ask answers moved to chapter 2.** Expanding a question now loads an AI-generated summary with many source links, the same content as AI Overview, so it will reuse that parser. Expanding also adds about 4 seconds per question, so it will be opt-in.
+
+Still open from step 2:
+
+- The 20-query bake-off against Camoufox and Patchright. CloakBrowser has not been blocked in headed mode across about 20 live searches, so this is a check on block rate at volume, not a blocker.
 - Running the browser inside Docker on a virtual display.
 
 ## Goal
@@ -90,7 +97,7 @@ The project is split into chapters. Each chapter ships something usable. This do
 | Chapter             | What it adds                                                                                                                             | New work                                                                                  |
 | ------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
 | 1. Google Search    | Organic results, related searches, People Also Ask, knowledge panel, plus the whole platform: API, keys, credits, async, dashboard, docs | Everything in "Build order" below                                                         |
-| 2. More Google      | AI Overview, Google News, then ads, shopping and local pack if wanted                                                                    | New parsers on the same fetcher                                                           |
+| 2. More Google      | AI Overview, People Also Ask answers, Google News, then ads, shopping and local pack if wanted                                           | New parsers on the same fetcher                                                           |
 | 3. ChatGPT          | `POST /v1/monitor/chatgpt`: answer text, markdown, sources, search queries                                                               | A new browser flow that types a prompt and waits for the streamed answer, plus its parser |
 | 4. Other AI engines | Perplexity, Gemini, Copilot, Google AI Mode, Grok, one at a time                                                                         | One browser flow and one parser per engine                                                |
 | 5. Going public     | Proxy provider, country and state targeting, public deployment, per-visitor limits                                                       | One route provider, hosting                                                               |
@@ -154,6 +161,7 @@ The platform is built once in chapter 1. From chapter 2 on, adding an engine mea
 - City-level targeting (`location`, `uule`) and US state targeting.
 - AI engines.
 - Proxies and public deployment. The slot for a proxy provider exists; no provider is wired in.
+- The mobile `device` option and People Also Ask answers, for the reasons under Progress.
 - Real billing, plans, teams and organisations.
 - SDKs, MCP server, no-code integrations.
 - Blog, comparison pages, leaderboard.

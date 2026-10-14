@@ -40,7 +40,12 @@ describe("POST /v1/async/task", () => {
       taskType: "GOOGLE",
       priority: 1,
       idempotencyKey: null,
-      payload: { query: "best crm", country: "US", include: { html: false } },
+      payload: {
+        query: "best crm",
+        country: "US",
+        pages: 1,
+        include: { html: false },
+      },
       webhookUrl: null,
     });
     expect(deps.enqueueTask).toHaveBeenCalledWith(
@@ -48,6 +53,7 @@ describe("POST /v1/async/task", () => {
         query: "best crm",
         country: "US",
         language: "en",
+        pages: 1,
         includeHtml: false,
         taskId,
       },

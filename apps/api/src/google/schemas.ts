@@ -1,5 +1,7 @@
 import { z } from "@hono/zod-openapi";
 
+const MAX_PAGES = 10;
+
 export const googleSearchRequestSchema = z
   .object({
     query: z
@@ -14,6 +16,13 @@ export const googleSearchRequestSchema = z
       .default("US")
       .transform((code) => code.toUpperCase())
       .openapi({ example: "US" }),
+    pages: z
+      .number()
+      .int()
+      .min(1)
+      .max(MAX_PAGES)
+      .default(1)
+      .openapi({ example: 1 }),
     include: z
       .object({ html: z.boolean().default(false) })
       .default({ html: false }),

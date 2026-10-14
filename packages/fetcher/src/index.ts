@@ -4,7 +4,7 @@ export {
   fetchGoogleSearch,
   type RetryPolicy,
 } from "./google/fetchGoogleSearch.ts";
-export type { SearchPageInput } from "./google/loadSearchPage.ts";
+export type { SearchPagesInput } from "./google/loadSearchPages.ts";
 export { createCloakBrowserProvider } from "./providers/cloakBrowserProvider.ts";
 export { directRoute } from "./routes/directRoute.ts";
 export type {
