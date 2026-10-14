@@ -1,6 +1,6 @@
 # scru — plan draft
 
-Status: chapter 1 in progress. Steps 1 to 5 work end to end, including pagination. Left in chapter 1: the public site and docs (step 6).
+Status: chapter 1 is done. Recommended next: chapter 3 (ChatGPT).
 
 ## Running it locally
 
@@ -22,14 +22,14 @@ Open http://localhost:3000, create an account and use the playground; new accoun
 
 ## Progress
 
-| Step                    | State       | Notes                                                                                                                   |
-| ----------------------- | ----------- | ----------------------------------------------------------------------------------------------------------------------- |
-| 1. Parser               | Done        | Organic results, People Also Ask questions, related searches, knowledge panel. Tested on two real pages                 |
-| 2. Fetcher              | Done        | Live pages from this machine with CloakBrowser, block detection, retries, up to 10 pages per search                     |
-| 3. Sync API             | Done        | `POST /v1/monitor/google` with key auth, error envelope, credits charged on success only, request log, OpenAPI document |
-| 4. Dashboard            | Done        | Sign-up and sign-in, overview, playground, API keys, webhooks, logs                                                     |
-| 5. Async                | Done        | Async tasks with polling, signed webhooks with retries, rate and concurrency limits, Webhooks page                      |
-| 6. Public site and docs | Not started |                                                                                                                         |
+| Step                    | State | Notes                                                                                                                   |
+| ----------------------- | ----- | ----------------------------------------------------------------------------------------------------------------------- |
+| 1. Parser               | Done  | Organic results, People Also Ask questions, related searches, knowledge panel. Tested on two real pages                 |
+| 2. Fetcher              | Done  | Live pages from this machine with CloakBrowser, block detection, retries, up to 10 pages per search                     |
+| 3. Sync API             | Done  | `POST /v1/monitor/google` with key auth, error envelope, credits charged on success only, request log, OpenAPI document |
+| 4. Dashboard            | Done  | Sign-up and sign-in, overview, playground, API keys, webhooks, logs                                                     |
+| 5. Async                | Done  | Async tasks with polling, signed webhooks with retries, rate and concurrency limits, Webhooks page                      |
+| 6. Public site and docs | Done  | Landing page, pricing, quickstart and API reference at /, /pricing, /docs and /docs/reference                           |
 
 What the first live runs showed (13 Oct 2026, one home connection, no proxy):
 

@@ -43,11 +43,11 @@ export default async function LogPage({
       <div className="grid gap-6">
         <section className="grid gap-2">
           <h2 className="text-sm font-medium">Request</h2>
-          <CodeBlock code={prettyJson(log.request)} />
+          <CodeBlock code={prettyJson(log.request)} language="json" />
         </section>
         <section className="grid gap-2">
           <h2 className="text-sm font-medium">Response</h2>
-          <CodeBlock code={prettyJson(log.response)} />
+          <CodeBlock code={prettyJson(log.response)} language="json" />
         </section>
       </div>
     </>
