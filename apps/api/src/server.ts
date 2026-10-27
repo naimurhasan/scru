@@ -4,6 +4,7 @@ import {
   createDatabase,
   createTask,
   findActiveApiKey,
+  listCrawlPages,
   findTask,
   findWorkspaceActor,
   insertRequestLog,
@@ -15,6 +16,7 @@ import {
   directRoute,
 } from "@scru/fetcher/http";
 import {
+  createCrawlQueue,
   createRenderClient,
   createSearchClient,
   createSessionPool,
@@ -28,6 +30,7 @@ const env = loadEnv();
 const database = createDatabase(env.databaseUrl);
 const searchClient = createSearchClient(env.redisUrl, env.syncTimeoutMs);
 const renderClient = createRenderClient(env.redisUrl, env.syncTimeoutMs);
+const crawlQueue = createCrawlQueue(env.redisUrl);
 const usage = createUsageLimiter(env.redisUrl, env.rateLimitPerSecond);
 const sessions = createSessionPool(env.redisUrl);
 const searchGoogle = connectSessionSearch(
@@ -55,6 +58,8 @@ const app = createApp(
     findTask: (workspaceId, taskId) =>
       findTask(database.db, workspaceId, taskId),
     enqueueTask: searchClient.enqueueTask,
+    enqueueCrawl: crawlQueue.enqueueCrawl,
+    listCrawlPages: (taskId, page) => listCrawlPages(database.db, taskId, page),
     limits: usage.limiter,
   },
   {
@@ -72,6 +77,7 @@ const shutdown = async () => {
   server.close();
   await searchClient.close();
   await renderClient.close();
+  await crawlQueue.close();
   usage.close();
   sessions.close();
   await database.close();

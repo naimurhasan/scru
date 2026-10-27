@@ -90,3 +90,17 @@ export const buildFetchQuery = (apiUrl: string): string =>
     `  --data-urlencode "url=https://books.toscrape.com/" \\`,
     `  --data-urlencode "output=markdown"`,
   ].join("\n");
+
+export const CRAWL_EXAMPLE_BODY = {
+  url: "https://books.toscrape.com/",
+  maxDepth: 1,
+  limit: 20,
+  include: ["/catalogue/category/*"],
+  output: "markdown",
+};
+
+export const buildCrawlPagesCurl = (apiUrl: string): string =>
+  [
+    `curl "${apiUrl}/v1/crawl/$TASK_ID/pages?after=-1&limit=20" \\`,
+    `  -H "Authorization: Bearer $SCRU_API_KEY"`,
+  ].join("\n");

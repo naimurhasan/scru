@@ -25,6 +25,17 @@ const extractorSchema = z
   )
   .openapi({ example: { title: "h1", links: "a.product @href" } });
 
+export const countrySchema = z
+  .string()
+  .regex(/^[A-Za-z]{2}$/, "Use a two-letter country code")
+  .transform((code) => code.toUpperCase())
+  .openapi({ example: "US" });
+
+export const publicUrlSchema = z
+  .url({ protocol: /^https?$/ })
+  .refine(isPublicUrl, "Use a public http or https address")
+  .openapi({ example: "https://books.toscrape.com/" });
+
 const selector = z.string().trim().min(1).max(500);
 const fieldValue = z.object({ selector, value: z.string().max(2_000) });
 
@@ -42,10 +53,7 @@ const instructionSchema = z.union([
 
 export const fetchRequestSchema = z
   .object({
-    url: z
-      .url({ protocol: /^https?$/ })
-      .refine(isPublicUrl, "Use a public http or https address")
-      .openapi({ example: "https://books.toscrape.com/" }),
+    url: publicUrlSchema,
     jsRender: z.boolean().default(false),
     jsInstructions: z
       .array(instructionSchema)
@@ -64,12 +72,7 @@ export const fetchRequestSchema = z
     cssExtractor: extractorSchema.optional(),
     blockResources: z.boolean().default(true),
     premiumProxy: z.boolean().default(false),
-    country: z
-      .string()
-      .regex(/^[A-Za-z]{2}$/, "Use a two-letter country code")
-      .transform((code) => code.toUpperCase())
-      .optional()
-      .openapi({ example: "US" }),
+    country: countrySchema.optional(),
     sessionId: z
       .string()
       .trim()

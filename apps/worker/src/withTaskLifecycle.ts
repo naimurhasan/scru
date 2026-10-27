@@ -1,5 +1,5 @@
-import { toTaskSettlement, type TaskSettlement } from "@scru/core";
-import type { SearchProcessor } from "@scru/queue";
+import type { TaskSettlement } from "@scru/core";
+import type { QueueProcessor } from "@scru/queue";
 
 export type TaskHooks = {
   markProcessing: (taskId: string) => Promise<void>;
@@ -19,10 +19,14 @@ const CRASHED: TaskSettlement = {
   httpStatus: INTERNAL_ERROR,
 };
 
-export const withTaskLifecycle = (
-  search: SearchProcessor,
+export const withTaskLifecycle = <
+  Job extends { taskId: string | null },
+  Outcome,
+>(
+  process: QueueProcessor<Job, Outcome>,
+  toSettlement: (outcome: Outcome) => TaskSettlement,
   hooks: TaskHooks,
-): SearchProcessor => {
+): QueueProcessor<Job, Outcome> => {
   const settle = async (taskId: string, settlement: TaskSettlement) => {
     const settled = await hooks.settle(taskId, settlement);
     if (settled?.deliveryId) await hooks.enqueueDelivery(settled.deliveryId);
@@ -30,11 +34,11 @@ export const withTaskLifecycle = (
 
   return async (job) => {
     const { taskId } = job.data;
-    if (taskId === null) return search(job);
+    if (taskId === null) return process(job);
     await hooks.markProcessing(taskId);
     try {
-      const outcome = await search(job);
-      await settle(taskId, toTaskSettlement(outcome));
+      const outcome = await process(job);
+      await settle(taskId, toSettlement(outcome));
       return outcome;
     } catch (error) {
       await settle(taskId, CRASHED);

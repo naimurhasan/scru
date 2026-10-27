@@ -7,6 +7,7 @@ Status: planned on 25 Oct 2026. Replaces chapters 2 to 5 of [plan.md](plan.md). 
 | Step     | State       | Notes                                                                                                                                                     |
 | -------- | ----------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | 1. Fetch | In progress | `POST` and `GET /v1/fetch` with rendering, page instructions, outputs, CSS extraction, Webshare proxies with country and sessions, and the reCAPTCHA step |
+| 2. Crawl | Done        | `POST /v1/crawl` as a `CRAWL` task, pages through `GET /v1/crawl/{taskId}/pages`, robots.txt, include and exclude patterns                                |
 
 What the first Fetch slice settled (25 Oct 2026):
 
@@ -42,6 +43,16 @@ What the playground and docs settled (27 Oct 2026):
 - **Docs:** the API reference has Fetch (fields, `GET` form, result, prices) and Page instructions sections; `FETCH_FAILED` and `TIMEOUT` are described for both engines.
 - The web app builds for production. The playground has not been clicked through yet, because Docker was not running.
 - Not built yet: Turnstile and hCaptcha.
+
+What Crawl settled (27 Oct 2026):
+
+- **A crawl is a task** of type `CRAWL`, so queueing, `GET /v1/async/task/{id}`, idempotency, signed webhooks and the request log are shared with Google tasks. The steps both submissions share live in `apps/api/src/tasks/queueTask.ts`.
+- **The loop is `@scru/crawler`'s `runCrawl`:** breadth first, same host only, asset links skipped, robots.txt rules for `*` checked when a link is queued, a 500 ms pause between pages, stopping at `maxDepth` or `limit`. Each page goes through the same Fetch pipeline, so rendering, proxies and the CAPTCHA step all apply.
+- **Pages are stored in `crawl_pages`** with their visit `position`, read in batches of up to 50 with `after` as the cursor, and readable while the crawl runs.
+- **Cost:** each fetched page is priced like a Fetch with the same options and the total is charged when the crawl finishes. Submitting needs credits for `limit` pages. A crawl that fetched nothing fails and costs nothing.
+- **`include` and `exclude` decide which links are followed at all,** not only which are returned, so a pattern that misses the listing pages also stops the crawl from reaching what they link to.
+- Checked live through the API: books.toscrape.com with depth 1, limit 8 and category patterns fetched 8 pages in 8.6 s for 8 credits, queued 45 more, and paged correctly in two batches.
+- Known gap: `/` and `/index.html` are fetched as two pages; there is no same-content check yet.
 
 ## Goal
 

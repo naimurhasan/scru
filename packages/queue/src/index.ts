@@ -1,3 +1,6 @@
+export { createCrawlQueue } from "./createCrawlQueue.ts";
+export { createCrawlWorker, type CrawlProcessor } from "./createCrawlWorker.ts";
+export { createQueueWorker, type QueueProcessor } from "./createQueueWorker.ts";
 export { createRenderClient } from "./createRenderClient.ts";
 export {
   createRenderWorker,
@@ -25,4 +28,9 @@ export {
   createWebhookWorker,
   type WebhookProcessor,
 } from "./createWebhookWorker.ts";
-export { RENDER_QUEUE, SEARCH_QUEUE, WEBHOOK_QUEUE } from "./queueNames.ts";
+export {
+  CRAWL_QUEUE,
+  RENDER_QUEUE,
+  SEARCH_QUEUE,
+  WEBHOOK_QUEUE,
+} from "./queueNames.ts";

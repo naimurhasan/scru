@@ -4,6 +4,11 @@ export { listApiKeys, type ApiKeySummary } from "./apiKeys/listApiKeys.ts";
 export { revokeApiKey } from "./apiKeys/revokeApiKey.ts";
 export { account, session, user, verification } from "./authSchema.ts";
 export { createDatabase, type Database } from "./client.ts";
+export { insertCrawlPage } from "./crawlPages/insertCrawlPage.ts";
+export {
+  listCrawlPages,
+  type CrawlPageList,
+} from "./crawlPages/listCrawlPages.ts";
 export type { RequestActor } from "./requestActor.ts";
 export { findRequestLog } from "./requestLogs/findRequestLog.ts";
 export {
@@ -20,6 +25,7 @@ export {
 } from "./requestLogs/listRequestLogs.ts";
 export {
   apiKeys,
+  crawlPages,
   requestLogs,
   tasks,
   webhookDeliveries,

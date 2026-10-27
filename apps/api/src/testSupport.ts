@@ -93,6 +93,11 @@ export const createDeps = () => ({
   createTask: vi.fn<ApiDeps["createTask"]>(async () => queuedTask),
   findTask: vi.fn<ApiDeps["findTask"]>(async () => queuedTask),
   enqueueTask: vi.fn<ApiDeps["enqueueTask"]>(async () => undefined),
+  enqueueCrawl: vi.fn<ApiDeps["enqueueCrawl"]>(async () => undefined),
+  listCrawlPages: vi.fn<ApiDeps["listCrawlPages"]>(async () => ({
+    pages: [],
+    nextCursor: null,
+  })),
   limits: {
     takeRateSlot: vi.fn<ApiDeps["limits"]["takeRateSlot"]>(async () => ({
       allowed: true,

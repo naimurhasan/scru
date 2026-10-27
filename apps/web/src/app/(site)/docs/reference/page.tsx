@@ -3,6 +3,8 @@ import { CodeBlock } from "@/components/dashboard/CodeBlock";
 import { DocsSection } from "@/components/docs/DocsSection";
 import { FieldTable } from "@/components/docs/FieldTable";
 import {
+  CRAWL_PAGE_FIELDS,
+  CRAWL_REQUEST_FIELDS,
   ERROR_CODES,
   FETCH_INSTRUCTIONS,
   FETCH_PRICES,
@@ -14,8 +16,10 @@ import {
   TASK_REQUEST_FIELDS,
 } from "@/lib/docs/docFields";
 import {
+  buildCrawlPagesCurl,
   buildFetchQuery,
   buildTaskCurl,
+  CRAWL_EXAMPLE_BODY,
   EXAMPLE_TASK,
   FETCH_EXAMPLE_BODY,
   FETCH_EXAMPLE_RESPONSE,
@@ -126,6 +130,44 @@ export default function ReferencePage() {
           label="jsInstructions"
           language="json"
         />
+      </DocsSection>
+
+      <DocsSection id="crawl" title="Crawl">
+        <CodeBlock
+          label="Endpoints"
+          code={[
+            "POST /v1/crawl",
+            "GET  /v1/async/task/{taskId}",
+            "GET  /v1/crawl/{taskId}/pages?after=…&limit=…",
+          ].join("\n")}
+        />
+        <p>
+          Starts at a page, follows its links on the same site and collects
+          every page it reaches. A crawl runs in the background as a task: poll
+          it or wait for its webhook, then read the pages. It respects the
+          site&apos;s robots.txt and pauses between pages.
+        </p>
+        <h3 className="font-medium">Body</h3>
+        <FieldTable fields={CRAWL_REQUEST_FIELDS} />
+        <CodeBlock
+          code={buildCurlSnippet(env.API_URL, "/v1/crawl", CRAWL_EXAMPLE_BODY)}
+          label="Request"
+        />
+        <h3 className="font-medium">Pages</h3>
+        <p>
+          Pages come back in the order they were visited, up to 50 at a time.
+          While <code>nextCursor</code> is not null, pass it as{" "}
+          <code>after</code> for the next batch. Pages are readable while the
+          crawl is still running.
+        </p>
+        <CodeBlock code={buildCrawlPagesCurl(env.API_URL)} label="Request" />
+        <FieldTable fields={CRAWL_PAGE_FIELDS} />
+        <h3 className="font-medium">Price</h3>
+        <p>
+          Each fetched page costs what a Fetch with the same options costs, and
+          the total is charged when the crawl finishes. To start, the workspace
+          needs enough credits for <code>limit</code> pages.
+        </p>
       </DocsSection>
 
       <DocsSection id="async-tasks" title="Async tasks">
