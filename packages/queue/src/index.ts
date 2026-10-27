@@ -1,5 +1,8 @@
-export { createCrawlQueue } from "./createCrawlQueue.ts";
 export { createCrawlWorker, type CrawlProcessor } from "./createCrawlWorker.ts";
+export {
+  createExtractorWorker,
+  type ExtractorProcessor,
+} from "./createExtractorWorker.ts";
 export { createQueueWorker, type QueueProcessor } from "./createQueueWorker.ts";
 export { createRenderClient } from "./createRenderClient.ts";
 export {
@@ -7,6 +10,7 @@ export {
   type RenderProcessor,
 } from "./createRenderWorker.ts";
 export { createSearchClient } from "./createSearchClient.ts";
+export { createTaskQueue } from "./createTaskQueue.ts";
 export {
   createSessionPool,
   DEFAULT_SESSION_POOL_OPTIONS,
@@ -30,6 +34,7 @@ export {
 } from "./createWebhookWorker.ts";
 export {
   CRAWL_QUEUE,
+  EXTRACTOR_QUEUE,
   RENDER_QUEUE,
   SEARCH_QUEUE,
   WEBHOOK_QUEUE,

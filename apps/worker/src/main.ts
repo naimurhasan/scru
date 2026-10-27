@@ -2,6 +2,7 @@ import {
   isHttpUrl,
   isPublicUrl,
   toCrawlSettlement,
+  toExtractorSettlement,
   toTaskSettlement,
   type TaskSettlement,
 } from "@scru/core";
@@ -9,6 +10,7 @@ import {
   createDatabase,
   findWebhookDelivery,
   insertCrawlPage,
+  saveExtractor,
   markTaskProcessing,
   recordWebhookAttempt,
   settleTask,
@@ -22,8 +24,10 @@ import {
   passRecaptcha,
 } from "@scru/fetcher";
 import { createFetchPage, createHttpFetcher } from "@scru/fetcher/http";
+import { createOpenRouterClient } from "@scru/extractor";
 import {
   createCrawlWorker,
+  createExtractorWorker,
   createRenderClient,
   createRenderWorker,
   createSearchWorker,
@@ -31,12 +35,15 @@ import {
   createWebhookQueue,
   createWebhookWorker,
   CRAWL_QUEUE,
+  EXTRACTOR_QUEUE,
   RENDER_QUEUE,
   SEARCH_QUEUE,
   WEBHOOK_QUEUE,
 } from "@scru/queue";
 import { connectSessionSearch } from "@scru/search";
 import { createCrawlProcessor } from "./createCrawlProcessor.ts";
+import { createExtractorProcessor } from "./createExtractorProcessor.ts";
+import { createRobotsFetcher } from "./createRobotsFetcher.ts";
 import { createRenderProcessor } from "./createRenderProcessor.ts";
 import { createSearchProcessor } from "./createSearchProcessor.ts";
 import { loadEnv } from "./env.ts";
@@ -121,13 +128,15 @@ const renders = createRenderWorker(
 
 const crawlRenders = createRenderClient(env.redisUrl, CRAWL_RENDER_WAIT_MS);
 const fetchHttp = createHttpFetcher(routes);
+const fetchPage = createFetchPage({ fetchHttp, render: crawlRenders.render });
+const fetchRobots = createRobotsFetcher(fetchHttp);
 
 const crawls = createCrawlWorker(
   env.redisUrl,
   withTaskLifecycle(
     createCrawlProcessor({
-      fetchPage: createFetchPage({ fetchHttp, render: crawlRenders.render }),
-      fetchHttp,
+      fetchPage,
+      fetchRobots,
       savePage: (taskId, page) => insertCrawlPage(database.db, taskId, page),
       pauseMs: CRAWL_PAUSE_MS,
     }),
@@ -135,6 +144,24 @@ const crawls = createCrawlWorker(
     taskHooks,
   ),
 );
+
+const extractors = env.openRouter
+  ? createExtractorWorker(
+      env.redisUrl,
+      withTaskLifecycle(
+        createExtractorProcessor({
+          fetchPage,
+          fetchRobots,
+          completeJson: createOpenRouterClient(env.openRouter),
+          model: env.openRouter.model,
+          saveExtractor: (extractor) => saveExtractor(database.db, extractor),
+          pauseMs: CRAWL_PAUSE_MS,
+        }),
+        toExtractorSettlement,
+        taskHooks,
+      ),
+    )
+  : null;
 
 const webhooks = createWebhookWorker(
   env.redisUrl,
@@ -149,7 +176,7 @@ const webhooks = createWebhookWorker(
 
 search.worker.on("ready", () =>
   console.log(
-    `Worker listening on ${SEARCH_QUEUE}, ${RENDER_QUEUE}, ${CRAWL_QUEUE} and ${WEBHOOK_QUEUE}`,
+    `Worker listening on ${[SEARCH_QUEUE, RENDER_QUEUE, CRAWL_QUEUE, ...(extractors ? [EXTRACTOR_QUEUE] : []), WEBHOOK_QUEUE].join(", ")}`,
   ),
 );
 search.worker.on("completed", (job, outcome) =>
@@ -176,6 +203,14 @@ crawls.worker.on("completed", (job, outcome) =>
 crawls.worker.on("failed", (job, error) =>
   console.error(`Crawl ${job?.data.taskId} crashed: ${error.message}`),
 );
+extractors?.worker.on("completed", (job, outcome) =>
+  console.log(
+    `Extractor ${job.data.taskId}: ${outcome.pageTypes.length} page types from ${outcome.pagesFetched} pages, ${outcome.modelCalls} model calls`,
+  ),
+);
+extractors?.worker.on("failed", (job, error) =>
+  console.error(`Extractor ${job?.data.taskId} crashed: ${error.message}`),
+);
 webhooks.worker.on("completed", (job) =>
   console.log(`Webhook ${job.data.deliveryId} delivered`),
 );
@@ -188,6 +223,7 @@ const shutdown = async () => {
   await search.close();
   await renders.close();
   await crawls.close();
+  await extractors?.close();
   await crawlRenders.close();
   await webhooks.close();
   await webhookQueue.close();

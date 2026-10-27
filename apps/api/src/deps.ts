@@ -1,5 +1,7 @@
 import type {
   CrawlJob,
+  ExtractorJob,
+  StoredExtractor,
   FetchJob,
   GoogleSearchJob,
   PageOutcome,
@@ -29,6 +31,12 @@ export type ApiDeps = {
   findTask: (workspaceId: string, taskId: string) => Promise<Task | null>;
   enqueueTask: (job: GoogleSearchJob, priority: number) => Promise<void>;
   enqueueCrawl: (job: CrawlJob, priority: number) => Promise<void>;
+  enqueueExtractor: (job: ExtractorJob, priority: number) => Promise<void>;
+  listExtractors: (workspaceId: string) => Promise<StoredExtractor[]>;
+  findLatestExtractor: (
+    workspaceId: string,
+    host: string,
+  ) => Promise<StoredExtractor | null>;
   listCrawlPages: (
     taskId: string,
     page: { after: number; limit: number },
@@ -40,6 +48,7 @@ export type ApiConfig = {
   internalToken: string;
   allowPrivateWebhooks: boolean;
   proxiesEnabled: boolean;
+  extractorsEnabled: boolean;
 };
 
 export type ApiEnv = {

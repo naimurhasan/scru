@@ -1,4 +1,5 @@
 export const SEARCH_QUEUE = "google-search";
 export const RENDER_QUEUE = "page-render";
 export const CRAWL_QUEUE = "site-crawl";
+export const EXTRACTOR_QUEUE = "extractor-prepare";
 export const WEBHOOK_QUEUE = "webhook-delivery";

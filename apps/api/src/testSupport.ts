@@ -17,6 +17,7 @@ export const config: ApiConfig = {
   internalToken: "internal-token-for-tests-only",
   allowPrivateWebhooks: false,
   proxiesEnabled: true,
+  extractorsEnabled: true,
 };
 
 export const workspaceId = "0b8f7a52-6c1d-4a0e-9d3b-2f4e5a6b7c8d";
@@ -94,6 +95,9 @@ export const createDeps = () => ({
   findTask: vi.fn<ApiDeps["findTask"]>(async () => queuedTask),
   enqueueTask: vi.fn<ApiDeps["enqueueTask"]>(async () => undefined),
   enqueueCrawl: vi.fn<ApiDeps["enqueueCrawl"]>(async () => undefined),
+  enqueueExtractor: vi.fn<ApiDeps["enqueueExtractor"]>(async () => undefined),
+  listExtractors: vi.fn<ApiDeps["listExtractors"]>(async () => []),
+  findLatestExtractor: vi.fn<ApiDeps["findLatestExtractor"]>(async () => null),
   listCrawlPages: vi.fn<ApiDeps["listCrawlPages"]>(async () => ({
     pages: [],
     nextCursor: null,

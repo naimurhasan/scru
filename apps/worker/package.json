@@ -13,6 +13,7 @@
     "@scru/core": "workspace:*",
     "@scru/crawler": "workspace:*",
     "@scru/db": "workspace:*",
+    "@scru/extractor": "workspace:*",
     "@scru/fetcher": "workspace:*",
     "@scru/parser": "workspace:*",
     "@scru/queue": "workspace:*",

@@ -19,6 +19,17 @@ export {
 } from "./crawl/types.ts";
 export { toCrawlSettlement } from "./crawl/toCrawlSettlement.ts";
 export {
+  PREPARATION_CREDITS,
+  toExtractorSettlement,
+} from "./extractor/toExtractorSettlement.ts";
+export type {
+  ExtractorFetchOptions,
+  ExtractorJob,
+  ExtractorOutcome,
+  PageTypeSummary,
+  StoredExtractor,
+} from "./extractor/types.ts";
+export {
   calculateFetchCredits,
   type FetchCreditInput,
 } from "./credits/calculateFetchCredits.ts";

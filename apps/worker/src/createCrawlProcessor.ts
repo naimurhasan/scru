@@ -8,30 +8,24 @@ import type {
   ProxyRequest,
 } from "@scru/core";
 import { runCrawl } from "@scru/crawler";
-import type { FetchedPage } from "@scru/fetcher";
 
 export type CrawlProcessorDeps = {
   fetchPage: (job: FetchJob) => Promise<PageOutcome>;
-  fetchHttp: (url: string, proxy: ProxyRequest | null) => Promise<FetchedPage>;
+  fetchRobots: (
+    origin: string,
+    proxy: ProxyRequest | null,
+  ) => Promise<string | null>;
   savePage: (taskId: string, page: CrawledPage) => Promise<void>;
   pauseMs: number;
 };
 
-const OK = 200;
-
 export const createCrawlProcessor =
-  ({ fetchPage, fetchHttp, savePage, pauseMs }: CrawlProcessorDeps) =>
+  ({ fetchPage, fetchRobots, savePage, pauseMs }: CrawlProcessorDeps) =>
   ({ data }: { data: CrawlJob }): Promise<CrawlOutcome> =>
     runCrawl(
       {
         fetchPage,
-        fetchRobots: async (origin) => {
-          const robots = await fetchHttp(
-            `${origin}/robots.txt`,
-            data.page.proxy,
-          ).catch(() => null);
-          return robots?.status === OK ? robots.html : null;
-        },
+        fetchRobots: (origin) => fetchRobots(origin, data.page.proxy),
         savePage: (page) => savePage(data.taskId, page),
         pause: () => delay(pauseMs),
       },
