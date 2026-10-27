@@ -6,6 +6,8 @@ import {
   CRAWL_PAGE_FIELDS,
   CRAWL_REQUEST_FIELDS,
   ERROR_CODES,
+  EXTRACT_RESULT_FIELDS,
+  EXTRACTOR_REQUEST_FIELDS,
   FETCH_INSTRUCTIONS,
   FETCH_PRICES,
   FETCH_REQUEST_FIELDS,
@@ -21,6 +23,8 @@ import {
   buildTaskCurl,
   CRAWL_EXAMPLE_BODY,
   EXAMPLE_TASK,
+  EXTRACT_EXAMPLE_RESPONSE,
+  EXTRACTOR_TASK_RESULT,
   FETCH_EXAMPLE_BODY,
   FETCH_EXAMPLE_RESPONSE,
   FETCH_INSTRUCTIONS_EXAMPLE,
@@ -167,6 +171,72 @@ export default function ReferencePage() {
           Each fetched page costs what a Fetch with the same options costs, and
           the total is charged when the crawl finishes. To start, the workspace
           needs enough credits for <code>limit</code> pages.
+        </p>
+      </DocsSection>
+
+      <DocsSection id="extract" title="Extract">
+        <CodeBlock
+          label="Endpoints"
+          code={[
+            "POST /v1/extractors",
+            "GET  /v1/extractors",
+            "POST /v1/extract",
+          ].join("\n")}
+        />
+        <p>
+          Point scru at a site once and it builds an extractor for it: it
+          studies a sample of the site&apos;s pages, works out the kinds of
+          pages it has and the fields on each, and checks every field on pages
+          it did not learn from before saving. After that,{" "}
+          <code>POST /v1/extract</code> returns any page of that site as clean
+          JSON, with no selectors to write.
+        </p>
+        <h3 className="font-medium">Prepare an extractor</h3>
+        <FieldTable fields={EXTRACTOR_REQUEST_FIELDS} />
+        <CodeBlock
+          code={buildCurlSnippet(env.API_URL, "/v1/extractors", {
+            url: "https://books.toscrape.com/",
+          })}
+          label="Request"
+        />
+        <p>
+          Preparing takes about half a minute. When the task completes, its
+          result lists the page types that were found:
+        </p>
+        <CodeBlock
+          code={prettyJson(EXTRACTOR_TASK_RESULT)}
+          label="Task result"
+          language="json"
+        />
+        <p>
+          Preparing the same site again saves a new version, and{" "}
+          <code>POST /v1/extract</code> always uses the newest one.{" "}
+          <code>GET /v1/extractors</code> shows every version with its fields
+          and selectors.
+        </p>
+        <h3 className="font-medium">Extract a page</h3>
+        <CodeBlock
+          code={buildCurlSnippet(env.API_URL, "/v1/extract", {
+            url: "https://books.toscrape.com/catalogue/the-grand-design_405/index.html",
+          })}
+          label="Request"
+        />
+        <CodeBlock
+          code={prettyJson(EXTRACT_EXAMPLE_RESPONSE)}
+          label="Response"
+          language="json"
+        />
+        <FieldTable fields={EXTRACT_RESULT_FIELDS} />
+        <p>
+          An address that matches none of the extractor&apos;s page types
+          answers 404 with the patterns it knows.
+        </p>
+        <h3 className="font-medium">Price</h3>
+        <p>
+          Preparing costs the sample pages it fetches, priced like Fetch, plus
+          20 credits; to start it, the workspace needs enough for 16 pages plus
+          20. Extracting a page costs the same as fetching it. Failures are
+          free.
         </p>
       </DocsSection>
 

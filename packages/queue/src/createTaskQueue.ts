@@ -1,20 +1,15 @@
-import type { CrawlJob } from "@scru/core";
 import { Queue } from "bullmq";
 import { createRedisConnection } from "./createRedisConnection.ts";
 import { JOB_RETENTION } from "./jobRetention.ts";
-import { CRAWL_QUEUE } from "./queueNames.ts";
 import { toQueuePriority } from "./toQueuePriority.ts";
 
-export const createCrawlQueue = (redisUrl: string) => {
+export const createTaskQueue = <Job>(redisUrl: string, queueName: string) => {
   const connection = createRedisConnection(redisUrl);
-  const queue = new Queue<CrawlJob>(CRAWL_QUEUE, { connection });
+  const queue = new Queue(queueName, { connection });
 
   return {
-    enqueueCrawl: async (
-      job: CrawlJob,
-      taskPriority: number,
-    ): Promise<void> => {
-      await queue.add("crawl", job, {
+    enqueue: async (job: Job, taskPriority: number): Promise<void> => {
+      await queue.add(queueName, job, {
         ...JOB_RETENTION,
         priority: toQueuePriority(taskPriority),
       });

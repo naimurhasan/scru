@@ -398,3 +398,44 @@ export const CRAWL_PAGE_FIELDS: DocField[] = [
     description: "Why a page could not be fetched. Failed pages are free.",
   },
 ];
+
+export const EXTRACTOR_REQUEST_FIELDS: DocField[] = [
+  {
+    name: "url",
+    type: "string, required",
+    description:
+      "A page of the site that links to the kinds of pages you want data from, usually the home page or a listing.",
+  },
+  {
+    name: "jsRender, blockResources, premiumProxy, country",
+    type: "as in Fetch",
+    description:
+      "How the site's pages are fetched, both while preparing and every time the extractor runs.",
+  },
+  {
+    name: "priority, idempotencyKey, webhook.url",
+    type: "as in Async tasks",
+    description:
+      "Preparing is a task, so it queues, polls and notifies the same way.",
+  },
+];
+
+export const EXTRACT_RESULT_FIELDS: DocField[] = [
+  {
+    name: "pageType",
+    type: "string",
+    description:
+      "Which kind of page the address matched, for example product_detail.",
+  },
+  {
+    name: "data",
+    type: "object or array",
+    description:
+      "One object for a page about one thing, or one object per item for a list page. Missing values are null; links and images are full addresses.",
+  },
+  {
+    name: "extractor",
+    type: "object",
+    description: "The id and version that read the page.",
+  },
+];

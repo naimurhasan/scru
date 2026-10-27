@@ -158,3 +158,29 @@ export const crawlPages = pgTable(
     ),
   ],
 );
+
+export const extractors = pgTable(
+  "extractors",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    workspaceId: uuid("workspace_id")
+      .notNull()
+      .references(() => workspaces.id, { onDelete: "cascade" }),
+    taskId: uuid("task_id").references(() => tasks.id, {
+      onDelete: "set null",
+    }),
+    host: text("host").notNull(),
+    version: integer("version").notNull(),
+    pageTypes: jsonb("page_types").notNull(),
+    fetchOptions: jsonb("fetch_options").notNull(),
+    model: text("model").notNull(),
+    createdAt: createdAt(),
+  },
+  (table) => [
+    uniqueIndex("extractors_workspace_host_version_idx").on(
+      table.workspaceId,
+      table.host,
+      table.version,
+    ),
+  ],
+);

@@ -13,6 +13,8 @@ const envSchema = z.object({
   WEBSHARE_USERNAME: z.string().default(""),
   WEBSHARE_PASSWORD: z.string().default(""),
   WEBSHARE_POOL_SIZE: z.coerce.number().int().positive().default(10),
+  OPENROUTER_API_KEY: z.string().default(""),
+  OPENROUTER_MODEL: z.string().default(""),
 });
 
 export const loadEnv = (source: NodeJS.ProcessEnv = process.env) => {
@@ -33,5 +35,6 @@ export const loadEnv = (source: NodeJS.ProcessEnv = process.env) => {
             poolSize: env.WEBSHARE_POOL_SIZE,
           }
         : null,
+    extractorsEnabled: Boolean(env.OPENROUTER_API_KEY && env.OPENROUTER_MODEL),
   };
 };

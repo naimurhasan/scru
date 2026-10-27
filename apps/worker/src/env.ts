@@ -19,6 +19,8 @@ const envSchema = z.object({
   WEBSHARE_PASSWORD: z.string().default(""),
   WEBSHARE_POOL_SIZE: z.coerce.number().int().positive().default(10),
   TWOCAPTCHA_API_KEY: z.string().default(""),
+  OPENROUTER_API_KEY: z.string().default(""),
+  OPENROUTER_MODEL: z.string().default(""),
 });
 
 export const loadEnv = (source: NodeJS.ProcessEnv = process.env) => {
@@ -39,5 +41,9 @@ export const loadEnv = (source: NodeJS.ProcessEnv = process.env) => {
           }
         : null,
     twoCaptchaApiKey: env.TWOCAPTCHA_API_KEY || null,
+    openRouter:
+      env.OPENROUTER_API_KEY && env.OPENROUTER_MODEL
+        ? { apiKey: env.OPENROUTER_API_KEY, model: env.OPENROUTER_MODEL }
+        : null,
   };
 };

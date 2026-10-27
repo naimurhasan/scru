@@ -4,10 +4,11 @@ Status: planned on 25 Oct 2026. Replaces chapters 2 to 5 of [plan.md](plan.md). 
 
 ## Progress
 
-| Step     | State       | Notes                                                                                                                                                     |
-| -------- | ----------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1. Fetch | In progress | `POST` and `GET /v1/fetch` with rendering, page instructions, outputs, CSS extraction, Webshare proxies with country and sessions, and the reCAPTCHA step |
-| 2. Crawl | Done        | `POST /v1/crawl` as a `CRAWL` task, pages through `GET /v1/crawl/{taskId}/pages`, robots.txt, include and exclude patterns                                |
+| Step       | State       | Notes                                                                                                                                                     |
+| ---------- | ----------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1. Fetch   | In progress | `POST` and `GET /v1/fetch` with rendering, page instructions, outputs, CSS extraction, Webshare proxies with country and sessions, and the reCAPTCHA step |
+| 2. Crawl   | Done        | `POST /v1/crawl` as a `CRAWL` task, pages through `GET /v1/crawl/{taskId}/pages`, robots.txt, include and exclude patterns                                |
+| 3. Extract | In progress | `POST /v1/extractors` prepares a versioned extractor per site, `POST /v1/extract` runs it without a model; dashboard, self-repair not yet                 |
 
 What the first Fetch slice settled (25 Oct 2026):
 
@@ -53,6 +54,16 @@ What Crawl settled (27 Oct 2026):
 - **`include` and `exclude` decide which links are followed at all,** not only which are returned, so a pattern that misses the listing pages also stops the crawl from reaching what they link to.
 - Checked live through the API: books.toscrape.com with depth 1, limit 8 and category patterns fetched 8 pages in 8.6 s for 8 credits, queued 45 more, and paged correctly in two batches.
 - Known gap: `/` and `/index.html` are fetched as two pages; there is no same-content check yet.
+
+What Extract settled (27 Oct 2026):
+
+- **Preparing is an `EXTRACTOR` task.** The worker fetches the start page, groups its same-site links by URL shape (a path segment with a digit, or a last segment that varies among siblings, becomes `*`), and fetches up to 5 pages from each of the 3 largest groups: 16 pages at most. A plain breadth-first crawl was rejected because on books.toscrape.com the first 20 links are all categories, so the model would never see a product.
+- **One model call per page type**, shown 2 simplified sample pages (scripts, styles, comments and most attributes stripped, 15,000 characters each). It answers a page type name, an item selector for list pages or null, and 3 to 12 fields with a selector and an optional attribute. The OpenRouter call asks for JSON and turns reasoning off.
+- **Checked before saving:** the selectors run on up to 3 pages the model did not see. Below 80 % average fill, the empty fields and one unseen page go back for a single repair, kept only if it scores better. Fields that never fill are dropped, and so is any field whose values repeat an earlier field on every page, which caught `review_count` copying `availability`. So at most 2 model calls per page type and 6 per preparation.
+- **Saved as a new version** in `extractors` per workspace and host, with the fetch options; `POST /v1/extract` uses the newest version, picks the page type whose pattern matches segment by segment, fetches the page and applies the selectors. `href` and `src` values come back as full addresses.
+- **Cost:** preparing charges the sample pages at Fetch prices plus 20 credits and needs credits for 16 pages plus 20 to start; extracting costs a Fetch. Failures are free. Needs `OPENROUTER_API_KEY` and `OPENROUTER_MODEL`; without them the worker skips the queue and the API refuses.
+- Checked live with `qwen/qwen3.7-flash` on books.toscrape.com: 11 sample pages and 2 model calls in about 20 s found `product_list` and `product_detail`, every kept field at 100 % fill; extracting an unseen book took 1.1 s and an unseen category returned all 19 books in 0.3 s. Two preparations used 4 model calls. The field list differs between runs, as model answers do.
+- Not built yet: a dashboard page to see and edit an extractor's fields, an Extract engine in the playground, re-preparing automatically when live fill drops, and `extract: "auto"` on Fetch.
 
 ## Goal
 

@@ -4,6 +4,12 @@ export { listApiKeys, type ApiKeySummary } from "./apiKeys/listApiKeys.ts";
 export { revokeApiKey } from "./apiKeys/revokeApiKey.ts";
 export { account, session, user, verification } from "./authSchema.ts";
 export { createDatabase, type Database } from "./client.ts";
+export { findLatestExtractor } from "./extractors/findLatestExtractor.ts";
+export { listExtractors } from "./extractors/listExtractors.ts";
+export {
+  saveExtractor,
+  type NewExtractor,
+} from "./extractors/saveExtractor.ts";
 export { insertCrawlPage } from "./crawlPages/insertCrawlPage.ts";
 export {
   listCrawlPages,
@@ -26,6 +32,7 @@ export {
 export {
   apiKeys,
   crawlPages,
+  extractors,
   requestLogs,
   tasks,
   webhookDeliveries,

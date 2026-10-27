@@ -104,3 +104,48 @@ export const buildCrawlPagesCurl = (apiUrl: string): string =>
     `curl "${apiUrl}/v1/crawl/$TASK_ID/pages?after=-1&limit=20" \\`,
     `  -H "Authorization: Bearer $SCRU_API_KEY"`,
   ].join("\n");
+
+export const EXTRACTOR_TASK_RESULT = {
+  extractorId: "83eee027-807a-4fd9-a135-f75a0ba2a789",
+  version: 1,
+  pagesFetched: 11,
+  pageTypes: [
+    {
+      name: "product_list",
+      pattern: "/catalogue/category/books/*/index.html",
+      fields: ["title", "link", "image", "price", "availability"],
+      fillRate: 1,
+    },
+    {
+      name: "product_detail",
+      pattern: "/catalogue/*/index.html",
+      fields: [
+        "title",
+        "price",
+        "availability",
+        "image_url",
+        "description",
+        "upc",
+      ],
+      fillRate: 1,
+    },
+  ],
+};
+
+export const EXTRACT_EXAMPLE_RESPONSE = {
+  success: true,
+  result: {
+    url: "https://books.toscrape.com/catalogue/the-grand-design_405/index.html",
+    statusCode: 200,
+    extractor: { id: "83eee027-807a-4fd9-a135-f75a0ba2a789", version: 1 },
+    pageType: "product_detail",
+    data: {
+      title: "The Grand Design",
+      price: "£13.76",
+      availability: "In stock (5 available)",
+      image_url:
+        "https://books.toscrape.com/media/cache/9b/69/9b696c2064d6ee387774b6121bb4be91.jpg",
+      upc: "3213b1f13f5f0f7c",
+    },
+  },
+};
