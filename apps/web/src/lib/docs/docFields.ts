@@ -331,3 +331,70 @@ export const FETCH_PRICES: DocField[] = [
     description: "Both. Failed requests are always free.",
   },
 ];
+
+export const CRAWL_REQUEST_FIELDS: DocField[] = [
+  {
+    name: "url",
+    type: "string, required",
+    description:
+      "Where the crawl starts. Only links on the same host are followed.",
+  },
+  {
+    name: "maxDepth",
+    type: "integer, 0–5",
+    description:
+      "How many links away from the start page to go. Defaults to 2; 0 fetches only the start page.",
+  },
+  {
+    name: "limit",
+    type: "integer, 1–500",
+    description: "The most pages to fetch. Defaults to 50.",
+  },
+  {
+    name: "include[] / exclude[]",
+    type: "path patterns",
+    description:
+      'Only follow paths that match include and none of exclude. * matches anything, for example "/catalogue/*".',
+  },
+  {
+    name: "output",
+    type: "string",
+    description: "html (default), markdown or text for each page.",
+  },
+  {
+    name: "jsRender, blockResources, premiumProxy, country",
+    type: "as in Fetch",
+    description: "Applied to every page of the crawl.",
+  },
+  {
+    name: "priority, idempotencyKey, webhook.url",
+    type: "as in Async tasks",
+    description:
+      "A crawl is a task, so it queues, polls and notifies the same way.",
+  },
+];
+
+export const CRAWL_PAGE_FIELDS: DocField[] = [
+  {
+    name: "position",
+    type: "integer",
+    description:
+      "Order of the visit, from 0. Pass the last one as after to read on.",
+  },
+  {
+    name: "url, depth",
+    type: "string, integer",
+    description:
+      "The page and how many links away from the start it was found.",
+  },
+  {
+    name: "statusCode, content",
+    type: "integer, string",
+    description: "What the site answered, in the requested output.",
+  },
+  {
+    name: "error",
+    type: "string or null",
+    description: "Why a page could not be fetched. Failed pages are free.",
+  },
+];

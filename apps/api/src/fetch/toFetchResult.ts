@@ -1,13 +1,11 @@
-import type { FetchOutput, PageSnapshot } from "@scru/core";
-import { extractWithCss, toMarkdown, toText } from "@scru/parser";
+import type { PageSnapshot } from "@scru/core";
+import { convertHtml, extractWithCss } from "@scru/parser";
 import type { FetchRequest, FetchResult } from "./schemas.ts";
 
-const CONVERTERS: Record<FetchOutput, (page: PageSnapshot) => string> = {
-  html: (page) => page.html,
-  markdown: (page) => toMarkdown(page.html),
-  text: (page) => toText(page.html),
-  screenshot: (page) => page.screenshot ?? "",
-};
+const toContent = (page: PageSnapshot, output: FetchRequest["output"]) =>
+  output === "screenshot"
+    ? (page.screenshot ?? "")
+    : convertHtml(page.html, output);
 
 export const toFetchResult = (
   page: PageSnapshot,
@@ -20,5 +18,5 @@ export const toFetchResult = (
   };
   return cssExtractor
     ? { ...target, data: extractWithCss(page.html, cssExtractor) }
-    : { ...target, output, content: CONVERTERS[output](page) };
+    : { ...target, output, content: toContent(page, output) };
 };

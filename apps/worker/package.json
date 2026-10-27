@@ -11,11 +11,12 @@
   },
   "dependencies": {
     "@scru/core": "workspace:*",
+    "@scru/crawler": "workspace:*",
+    "@scru/db": "workspace:*",
     "@scru/fetcher": "workspace:*",
     "@scru/parser": "workspace:*",
     "@scru/queue": "workspace:*",
-    "zod": "^4.6.6",
-    "@scru/db": "workspace:*",
-    "@scru/search": "workspace:*"
+    "@scru/search": "workspace:*",
+    "zod": "^4.6.6"
   }
 }

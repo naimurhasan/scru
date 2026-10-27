@@ -1,7 +1,14 @@
-import { isPublicUrl, isHttpUrl } from "@scru/core";
+import {
+  isHttpUrl,
+  isPublicUrl,
+  toCrawlSettlement,
+  toTaskSettlement,
+  type TaskSettlement,
+} from "@scru/core";
 import {
   createDatabase,
   findWebhookDelivery,
+  insertCrawlPage,
   markTaskProcessing,
   recordWebhookAttempt,
   settleTask,
@@ -14,17 +21,22 @@ import {
   harvestSession,
   passRecaptcha,
 } from "@scru/fetcher";
+import { createFetchPage, createHttpFetcher } from "@scru/fetcher/http";
 import {
+  createCrawlWorker,
+  createRenderClient,
   createRenderWorker,
   createSearchWorker,
   createSessionPool,
   createWebhookQueue,
   createWebhookWorker,
+  CRAWL_QUEUE,
   RENDER_QUEUE,
   SEARCH_QUEUE,
   WEBHOOK_QUEUE,
 } from "@scru/queue";
 import { connectSessionSearch } from "@scru/search";
+import { createCrawlProcessor } from "./createCrawlProcessor.ts";
 import { createRenderProcessor } from "./createRenderProcessor.ts";
 import { createSearchProcessor } from "./createSearchProcessor.ts";
 import { loadEnv } from "./env.ts";
@@ -41,6 +53,8 @@ const sessions = createSessionPool(env.redisUrl);
 const HARVEST_TIMEOUT_MS = 30_000;
 const KEEPER_INTERVAL_MS = 20_000;
 const RENDER_TIMEOUT_MS = 30_000;
+const CRAWL_RENDER_WAIT_MS = 120_000;
+const CRAWL_PAUSE_MS = 500;
 
 const provider = createCloakBrowserProvider({
   profileDir: env.profileDir,
@@ -66,24 +80,33 @@ const keeper = keepSessionsReady({
   onError: (error) => console.error("Session keeper failed", error),
 });
 
+const taskHooks = {
+  markProcessing: (taskId: string) => markTaskProcessing(database.db, taskId),
+  settle: (taskId: string, settlement: TaskSettlement) =>
+    settleTask(database.db, taskId, settlement),
+  enqueueDelivery: webhookQueue.enqueueDelivery,
+};
+
 const search = createSearchWorker(
   env.redisUrl,
-  withTaskLifecycle(({ data }) => sessionSearch(data), {
-    markProcessing: (taskId) => markTaskProcessing(database.db, taskId),
-    settle: (taskId, settlement) => settleTask(database.db, taskId, settlement),
-    enqueueDelivery: webhookQueue.enqueueDelivery,
-  }),
+  withTaskLifecycle(
+    ({ data }) => sessionSearch(data),
+    toTaskSettlement,
+    taskHooks,
+  ),
 );
 
 const solveRecaptcha = env.twoCaptchaApiKey
   ? createTwoCaptchaSolver(env.twoCaptchaApiKey)
   : null;
 
+const routes = env.webshare ? createWebshareRoutes(env.webshare) : directRoute;
+
 const renders = createRenderWorker(
   env.redisUrl,
   createRenderProcessor({
     sharedBrowser: provider,
-    routes: env.webshare ? createWebshareRoutes(env.webshare) : directRoute,
+    routes,
     headless: env.headless,
     options: {
       timeoutMs: RENDER_TIMEOUT_MS,
@@ -94,6 +117,23 @@ const renders = createRenderWorker(
       },
     },
   }),
+);
+
+const crawlRenders = createRenderClient(env.redisUrl, CRAWL_RENDER_WAIT_MS);
+const fetchHttp = createHttpFetcher(routes);
+
+const crawls = createCrawlWorker(
+  env.redisUrl,
+  withTaskLifecycle(
+    createCrawlProcessor({
+      fetchPage: createFetchPage({ fetchHttp, render: crawlRenders.render }),
+      fetchHttp,
+      savePage: (taskId, page) => insertCrawlPage(database.db, taskId, page),
+      pauseMs: CRAWL_PAUSE_MS,
+    }),
+    toCrawlSettlement,
+    taskHooks,
+  ),
 );
 
 const webhooks = createWebhookWorker(
@@ -109,7 +149,7 @@ const webhooks = createWebhookWorker(
 
 search.worker.on("ready", () =>
   console.log(
-    `Worker listening on ${SEARCH_QUEUE}, ${RENDER_QUEUE} and ${WEBHOOK_QUEUE}`,
+    `Worker listening on ${SEARCH_QUEUE}, ${RENDER_QUEUE}, ${CRAWL_QUEUE} and ${WEBHOOK_QUEUE}`,
   ),
 );
 search.worker.on("completed", (job, outcome) =>
@@ -128,6 +168,14 @@ renders.worker.on("completed", (job, outcome) =>
 renders.worker.on("failed", (job, error) =>
   console.error(`Render ${job?.id} crashed: ${error.message}`),
 );
+crawls.worker.on("completed", (job, outcome) =>
+  console.log(
+    `Crawl ${job.data.taskId}: ${outcome.pagesFetched} pages, ${outcome.pagesFailed} failed, ${outcome.stoppedBy}`,
+  ),
+);
+crawls.worker.on("failed", (job, error) =>
+  console.error(`Crawl ${job?.data.taskId} crashed: ${error.message}`),
+);
 webhooks.worker.on("completed", (job) =>
   console.log(`Webhook ${job.data.deliveryId} delivered`),
 );
@@ -139,6 +187,8 @@ const shutdown = async () => {
   keeper.stop();
   await search.close();
   await renders.close();
+  await crawls.close();
+  await crawlRenders.close();
   await webhooks.close();
   await webhookQueue.close();
   await provider.close();

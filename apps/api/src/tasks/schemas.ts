@@ -1,5 +1,4 @@
 import { z } from "@hono/zod-openapi";
-import { TASK_TYPES } from "@scru/core";
 import { googleSearchRequestSchema } from "../google/schemas.ts";
 
 const LOWEST_PRIORITY = 1;
@@ -7,7 +6,7 @@ const HIGHEST_PRIORITY = 10;
 
 export const submitTaskRequestSchema = z
   .object({
-    taskType: z.enum(TASK_TYPES).openapi({ example: "GOOGLE" }),
+    taskType: z.literal("GOOGLE").openapi({ example: "GOOGLE" }),
     payload: googleSearchRequestSchema,
     priority: z
       .number()

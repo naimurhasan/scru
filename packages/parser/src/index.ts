@@ -17,3 +17,5 @@ export {
 } from "./page/readExtractorRule.ts";
 export { toMarkdown } from "./page/toMarkdown.ts";
 export { toText } from "./page/toText.ts";
+export { convertHtml, type TextOutput } from "./page/convertHtml.ts";
+export { extractLinks } from "./page/extractLinks.ts";

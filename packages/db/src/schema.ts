@@ -135,3 +135,26 @@ export const webhookDeliveries = pgTable(
     ),
   ],
 );
+
+export const crawlPages = pgTable(
+  "crawl_pages",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    taskId: uuid("task_id")
+      .notNull()
+      .references(() => tasks.id, { onDelete: "cascade" }),
+    position: integer("position").notNull(),
+    url: text("url").notNull(),
+    depth: integer("depth").notNull(),
+    statusCode: integer("status_code"),
+    content: text("content"),
+    error: text("error"),
+    createdAt: createdAt(),
+  },
+  (table) => [
+    uniqueIndex("crawl_pages_task_position_idx").on(
+      table.taskId,
+      table.position,
+    ),
+  ],
+);

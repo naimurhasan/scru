@@ -27,6 +27,7 @@ export const DOCS_SECTIONS: DocsGroup[] = [
         href: "/docs/reference#page-instructions",
         label: "Page instructions",
       },
+      { href: "/docs/reference#crawl", label: "Crawl" },
       { href: "/docs/reference#async-tasks", label: "Async tasks" },
       { href: "/docs/reference#webhooks", label: "Webhooks" },
       { href: "/docs/reference#errors", label: "Errors" },

@@ -81,7 +81,7 @@ const logTask = (
   insertRequestLog(tx, {
     workspaceId: task.workspaceId,
     apiKeyId: task.apiKeyId,
-    engine: "google",
+    engine: task.taskType.toLowerCase(),
     request: task.payload,
     durationMs:
       completedAt.getTime() - (task.startedAt ?? task.createdAt).getTime(),

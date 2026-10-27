@@ -10,6 +10,15 @@ export {
   type RequestMode,
 } from "./credits/calculateCredits.ts";
 export {
+  CRAWL_OUTPUTS,
+  type CrawledPage,
+  type CrawlJob,
+  type CrawlOutcome,
+  type CrawlOutput,
+  type CrawlStop,
+} from "./crawl/types.ts";
+export { toCrawlSettlement } from "./crawl/toCrawlSettlement.ts";
+export {
   calculateFetchCredits,
   type FetchCreditInput,
 } from "./credits/calculateFetchCredits.ts";

@@ -1,4 +1,8 @@
-import type { GoogleSearchJob, SearchOutcome } from "@scru/core";
+import {
+  toTaskSettlement,
+  type GoogleSearchJob,
+  type SearchOutcome,
+} from "@scru/core";
 import { describe, expect, it, vi } from "vitest";
 import { withTaskLifecycle, type TaskHooks } from "./withTaskLifecycle.ts";
 
@@ -36,7 +40,11 @@ const createHooks = () => ({
 describe("withTaskLifecycle", () => {
   it("leaves a sync search untouched", async () => {
     const hooks = createHooks();
-    const process = withTaskLifecycle(async () => found, hooks);
+    const process = withTaskLifecycle(
+      async () => found,
+      toTaskSettlement,
+      hooks,
+    );
 
     expect(await process(job(null))).toBe(found);
     expect(hooks.markProcessing).not.toHaveBeenCalled();
@@ -53,10 +61,14 @@ describe("withTaskLifecycle", () => {
       order.push("settled");
       return { deliveryId: null };
     });
-    const process = withTaskLifecycle(async () => {
-      order.push("search");
-      return found;
-    }, hooks);
+    const process = withTaskLifecycle(
+      async () => {
+        order.push("search");
+        return found;
+      },
+      toTaskSettlement,
+      hooks,
+    );
 
     await process(job("task-1"));
 
@@ -70,7 +82,8 @@ describe("withTaskLifecycle", () => {
   it("settles a blocked search as a failure", async () => {
     const hooks = createHooks();
     const process = withTaskLifecycle(
-      async () => ({ ok: false, reason: "captcha" }),
+      async (): Promise<SearchOutcome> => ({ ok: false, reason: "captcha" }),
+      toTaskSettlement,
       hooks,
     );
 
@@ -86,7 +99,11 @@ describe("withTaskLifecycle", () => {
     const hooks = createHooks();
     hooks.settle.mockResolvedValue({ deliveryId: "delivery-1" });
 
-    await withTaskLifecycle(async () => found, hooks)(job("task-1"));
+    await withTaskLifecycle(
+      async () => found,
+      toTaskSettlement,
+      hooks,
+    )(job("task-1"));
 
     expect(hooks.enqueueDelivery).toHaveBeenCalledWith("delivery-1");
   });
@@ -95,16 +112,24 @@ describe("withTaskLifecycle", () => {
     const hooks = createHooks();
     hooks.settle.mockResolvedValue(null);
 
-    await withTaskLifecycle(async () => found, hooks)(job("task-1"));
+    await withTaskLifecycle(
+      async () => found,
+      toTaskSettlement,
+      hooks,
+    )(job("task-1"));
 
     expect(hooks.enqueueDelivery).not.toHaveBeenCalled();
   });
 
   it("fails the task instead of leaving it processing when the search crashes", async () => {
     const hooks = createHooks();
-    const process = withTaskLifecycle(async () => {
-      throw new Error("browser died");
-    }, hooks);
+    const process = withTaskLifecycle(
+      async () => {
+        throw new Error("browser died");
+      },
+      toTaskSettlement,
+      hooks,
+    );
 
     await expect(process(job("task-1"))).rejects.toThrow("browser died");
     expect(hooks.settle).toHaveBeenCalledWith(
