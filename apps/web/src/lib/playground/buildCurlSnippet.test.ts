@@ -4,7 +4,7 @@ import { buildCurlSnippet } from "./buildCurlSnippet";
 describe("buildCurlSnippet", () => {
   it("builds a runnable curl command", () => {
     expect(
-      buildCurlSnippet("http://localhost:4000", {
+      buildCurlSnippet("http://localhost:4000", "/v1/monitor/google", {
         query: "best crm",
         country: "US",
         pages: 2,
@@ -21,7 +21,7 @@ describe("buildCurlSnippet", () => {
 
   it("keeps a query with a single quote inside the shell string", () => {
     expect(
-      buildCurlSnippet("http://localhost:4000", {
+      buildCurlSnippet("http://localhost:4000", "/v1/monitor/google", {
         query: "what's a crm",
         country: "US",
         pages: 1,

@@ -1,6 +1,6 @@
 # scru — plan draft
 
-Status: chapter 1 is done. Recommended next: chapter 3 (ChatGPT).
+Status: chapter 1 is done. Chapters 2 to 5 are replaced by the [ZenRows plan](zenrows-plan.md).
 
 ## Running it locally
 

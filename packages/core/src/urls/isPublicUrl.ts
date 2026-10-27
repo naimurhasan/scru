@@ -16,11 +16,11 @@ const isPrivateIpv6 = (hostname: string) =>
     hostname,
   );
 
-export const isWebhookUrl = (value: string): boolean =>
+export const isHttpUrl = (value: string): boolean =>
   URL.canParse(value) && /^https?:$/.test(new URL(value).protocol);
 
-export const isPublicWebhookUrl = (value: string): boolean => {
-  if (!isWebhookUrl(value)) return false;
+export const isPublicUrl = (value: string): boolean => {
+  if (!isHttpUrl(value)) return false;
   const { hostname } = new URL(value);
   return (
     !PRIVATE_HOSTNAMES.test(hostname) &&

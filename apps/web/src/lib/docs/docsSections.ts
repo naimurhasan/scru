@@ -22,6 +22,11 @@ export const DOCS_SECTIONS: DocsGroup[] = [
     links: [
       { href: "/docs/reference#authentication", label: "Authentication" },
       { href: "/docs/reference#google-search", label: "Google search" },
+      { href: "/docs/reference#fetch", label: "Fetch" },
+      {
+        href: "/docs/reference#page-instructions",
+        label: "Page instructions",
+      },
       { href: "/docs/reference#async-tasks", label: "Async tasks" },
       { href: "/docs/reference#webhooks", label: "Webhooks" },
       { href: "/docs/reference#errors", label: "Errors" },

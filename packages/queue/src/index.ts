@@ -1,3 +1,8 @@
+export { createRenderClient } from "./createRenderClient.ts";
+export {
+  createRenderWorker,
+  type RenderProcessor,
+} from "./createRenderWorker.ts";
 export { createSearchClient } from "./createSearchClient.ts";
 export {
   createSessionPool,
@@ -20,4 +25,4 @@ export {
   createWebhookWorker,
   type WebhookProcessor,
 } from "./createWebhookWorker.ts";
-export { SEARCH_QUEUE, WEBHOOK_QUEUE } from "./queueNames.ts";
+export { RENDER_QUEUE, SEARCH_QUEUE, WEBHOOK_QUEUE } from "./queueNames.ts";

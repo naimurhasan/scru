@@ -4,6 +4,8 @@ import type { ApiConfig, ApiDeps, ApiEnv } from "./deps.ts";
 import { ApiError } from "./errors/ApiError.ts";
 import { toApiError } from "./errors/toApiError.ts";
 import { toErrorBody } from "./errors/toErrorBody.ts";
+import { toValidationError } from "./errors/toValidationError.ts";
+import { registerFetch } from "./fetch/registerFetch.ts";
 import { registerGoogleSearch } from "./google/registerGoogleSearch.ts";
 import { enforceRateLimit } from "./limits/enforceRateLimit.ts";
 import { registerTaskRoutes } from "./tasks/registerTaskRoutes.ts";
@@ -11,15 +13,7 @@ import { registerTaskRoutes } from "./tasks/registerTaskRoutes.ts";
 export const createApp = (deps: ApiDeps, config: ApiConfig) => {
   const app = new OpenAPIHono<ApiEnv>({
     defaultHook: (result) => {
-      if (!result.success)
-        throw new ApiError(
-          "VALIDATION_ERROR",
-          "The request is invalid",
-          result.error.issues.map(({ path, message }) => ({
-            field: path.join("."),
-            message,
-          })),
-        );
+      if (!result.success) throw toValidationError(result.error.issues);
     },
   });
 
@@ -54,6 +48,7 @@ export const createApp = (deps: ApiDeps, config: ApiConfig) => {
   app.use("/v1/*", enforceRateLimit(deps.limits));
 
   registerGoogleSearch(app, deps);
+  registerFetch(app, deps, config);
   registerTaskRoutes(app, deps, config);
 
   return app;

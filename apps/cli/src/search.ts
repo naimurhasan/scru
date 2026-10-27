@@ -1,6 +1,7 @@
 import { resolve } from "node:path";
 import {
   createCloakBrowserProvider,
+  ANY_ROUTE,
   directRoute,
   fetchGoogleSearch,
 } from "@scru/fetcher";
@@ -15,7 +16,7 @@ if (!query) {
 
 const provider = createCloakBrowserProvider({
   profileDir: resolve(import.meta.dirname, "../../../.profiles/cloakbrowser"),
-  route: directRoute.nextRoute(),
+  route: directRoute.routeFor(ANY_ROUTE),
   headless: false,
   locale: "en-US",
 });

@@ -35,7 +35,7 @@ export default function QuickstartPage() {
       <DocsSection id="first-request" title="2. Send your first request">
         <CodeBlock
           label="Request"
-          code={buildCurlSnippet(env.API_URL, {
+          code={buildCurlSnippet(env.API_URL, "/v1/monitor/google", {
             query: "best crm tools for small businesses",
             country: "US",
             pages: 1,

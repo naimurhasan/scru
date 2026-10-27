@@ -2,6 +2,7 @@ import { mkdir, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import {
   createCloakBrowserProvider,
+  ANY_ROUTE,
   directRoute,
   fetchGoogleSearch,
 } from "../src/index.ts";
@@ -30,7 +31,7 @@ const fixtureFile = (pageNumber: number) =>
 
 const provider = createCloakBrowserProvider({
   profileDir,
-  route: directRoute.nextRoute(),
+  route: directRoute.routeFor(ANY_ROUTE),
   headless: process.env.HEADLESS === "true",
   locale: "en-US",
 });

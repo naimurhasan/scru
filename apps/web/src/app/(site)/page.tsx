@@ -47,7 +47,7 @@ export default function HomePage() {
         <div className="grid min-w-0 gap-3">
           <CodeBlock
             label="Request"
-            code={buildCurlSnippet(env.API_URL, {
+            code={buildCurlSnippet(env.API_URL, "/v1/monitor/google", {
               query: "best crm tools for small businesses",
               country: "US",
               pages: 1,

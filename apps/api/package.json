@@ -14,9 +14,11 @@
     "@hono/zod-openapi": "^1.6.3",
     "@scru/core": "workspace:*",
     "@scru/db": "workspace:*",
+    "@scru/fetcher": "workspace:*",
+    "@scru/parser": "workspace:*",
     "@scru/queue": "workspace:*",
+    "@scru/search": "workspace:*",
     "hono": "^4.13.13",
-    "zod": "^4.6.6",
-    "@scru/search": "workspace:*"
+    "zod": "^4.6.6"
   }
 }

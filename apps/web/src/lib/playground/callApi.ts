@@ -1,6 +1,6 @@
 import "server-only";
 import { env } from "@/lib/env";
-import type { PlaygroundRequest, PlaygroundResponse } from "./types";
+import type { PlaygroundResponse } from "./types";
 
 const SERVICE_UNAVAILABLE = 503;
 
@@ -23,13 +23,14 @@ const unavailable = (durationMs: number): PlaygroundResponse => ({
   },
 });
 
-export const runGoogleSearch = async (
+export const callApi = async (
   workspaceId: string,
-  request: PlaygroundRequest,
+  path: string,
+  body: unknown,
 ): Promise<PlaygroundResponse> => {
   const startedAt = Date.now();
   try {
-    const response = await fetch(`${env.API_URL}/v1/monitor/google`, {
+    const response = await fetch(`${env.API_URL}${path}`, {
       method: "POST",
       cache: "no-store",
       headers: {
@@ -37,7 +38,7 @@ export const runGoogleSearch = async (
         "X-Internal-Token": env.INTERNAL_API_TOKEN,
         "X-Workspace-Id": workspaceId,
       },
-      body: JSON.stringify(request),
+      body: JSON.stringify(body),
     });
     return {
       status: response.status,

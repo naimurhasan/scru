@@ -1,24 +1,51 @@
 "use server";
 
 import { z } from "zod";
-import { runGoogleSearch } from "@/lib/playground/runGoogleSearch";
+import { callApi } from "@/lib/playground/callApi";
+import { FETCH_OUTPUT_VALUES } from "@/lib/playground/fetchOutputs";
+import { toFetchBody } from "@/lib/playground/toFetchBody";
 import type {
-  PlaygroundRequest,
+  FetchRequest,
+  GoogleSearchRequest,
   PlaygroundResponse,
 } from "@/lib/playground/types";
 import { requireWorkspace } from "@/lib/requireWorkspace";
 
 const MAX_PAGES = 10;
 
-const requestSchema = z.object({
+const googleSearchSchema = z.object({
   query: z.string().trim().min(1).max(500),
   country: z.string().regex(/^[A-Z]{2}$/),
   pages: z.number().int().min(1).max(MAX_PAGES),
 });
 
-export const sendPlaygroundRequest = async (
-  input: PlaygroundRequest,
+const fetchSchema = z.object({
+  url: z.string().trim().min(1).max(2_000),
+  output: z.enum(FETCH_OUTPUT_VALUES),
+  jsRender: z.boolean(),
+  waitFor: z.string().max(500),
+  premiumProxy: z.boolean(),
+  country: z.string().regex(/^([A-Z]{2})?$/),
+});
+
+export const sendGoogleSearch = async (
+  input: GoogleSearchRequest,
 ): Promise<PlaygroundResponse> => {
   const { workspace } = await requireWorkspace();
-  return runGoogleSearch(workspace.id, requestSchema.parse(input));
+  return callApi(
+    workspace.id,
+    "/v1/monitor/google",
+    googleSearchSchema.parse(input),
+  );
+};
+
+export const sendFetch = async (
+  input: FetchRequest,
+): Promise<PlaygroundResponse> => {
+  const { workspace } = await requireWorkspace();
+  return callApi(
+    workspace.id,
+    "/v1/fetch",
+    toFetchBody(fetchSchema.parse(input)),
+  );
 };

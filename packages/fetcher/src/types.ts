@@ -4,9 +4,15 @@ export type Route = {
   proxy?: string;
 };
 
+export type RouteRequest = {
+  country: string | null;
+  sessionId: string | null;
+  sticky: boolean;
+};
+
 export type RouteProvider = {
   name: string;
-  nextRoute: () => Route;
+  routeFor: (request: RouteRequest) => Route;
 };
 
 export type FetchedPage = {

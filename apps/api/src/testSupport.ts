@@ -1,4 +1,4 @@
-import type { SearchOutcome } from "@scru/core";
+import type { PageOutcome, SearchOutcome } from "@scru/core";
 import type { Task } from "@scru/db";
 import { vi } from "vitest";
 import { createApp } from "./app.ts";
@@ -16,6 +16,7 @@ export const actor = {
 export const config: ApiConfig = {
   internalToken: "internal-token-for-tests-only",
   allowPrivateWebhooks: false,
+  proxiesEnabled: true,
 };
 
 export const workspaceId = "0b8f7a52-6c1d-4a0e-9d3b-2f4e5a6b7c8d";
@@ -41,6 +42,17 @@ export const found: Extract<SearchOutcome, { ok: true }> = {
   result,
   html: "<html>results</html>",
   pages: 1,
+};
+
+export const fetched: Extract<PageOutcome, { ok: true }> = {
+  ok: true,
+  page: {
+    url: "https://shop.example/deals",
+    status: 200,
+    html: '<h1>Daily deals</h1><a class="item" href="/p/1">Red chair</a>',
+    screenshot: null,
+    instructions: [],
+  },
 };
 
 export const queuedTask: Task = {
@@ -77,6 +89,7 @@ export const createDeps = () => ({
   chargeCredits: vi.fn<ApiDeps["chargeCredits"]>(async () => 95),
   recordRequest: vi.fn<ApiDeps["recordRequest"]>(async () => undefined),
   searchGoogle: vi.fn<ApiDeps["searchGoogle"]>(async () => found),
+  fetchPage: vi.fn<ApiDeps["fetchPage"]>(async () => fetched),
   createTask: vi.fn<ApiDeps["createTask"]>(async () => queuedTask),
   findTask: vi.fn<ApiDeps["findTask"]>(async () => queuedTask),
   enqueueTask: vi.fn<ApiDeps["enqueueTask"]>(async () => undefined),

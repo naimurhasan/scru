@@ -55,3 +55,38 @@ export const isFromScru = (body: string, header: string, secret: string) => {
     timingSafeEqual(Buffer.from(signature), Buffer.from(expected))
   );
 };`;
+
+export const FETCH_EXAMPLE_BODY = {
+  url: "https://books.toscrape.com/",
+  cssExtractor: {
+    titles: "article.product_pod h3 a @title",
+    prices: ".price_color",
+  },
+};
+
+export const FETCH_EXAMPLE_RESPONSE = {
+  success: true,
+  result: {
+    url: "https://books.toscrape.com/",
+    statusCode: 200,
+    data: {
+      titles: ["A Light in the Attic", "Tipping the Velvet", "Soumission"],
+      prices: ["£51.77", "£53.74", "£50.10"],
+    },
+  },
+};
+
+export const FETCH_INSTRUCTIONS_EXAMPLE = [
+  { fill: { selector: "#username", value: "demo" } },
+  { fill: { selector: "#password", value: "demo" } },
+  { click: "input[type=submit]" },
+  { waitFor: "a[href='/logout']" },
+];
+
+export const buildFetchQuery = (apiUrl: string): string =>
+  [
+    `curl -G ${apiUrl}/v1/fetch \\`,
+    `  -H "Authorization: Bearer $SCRU_API_KEY" \\`,
+    `  --data-urlencode "url=https://books.toscrape.com/" \\`,
+    `  --data-urlencode "output=markdown"`,
+  ].join("\n");

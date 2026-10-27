@@ -1,6 +1,6 @@
 import { createHmac } from "node:crypto";
 import { describe, expect, it } from "vitest";
-import { isPublicWebhookUrl, isWebhookUrl } from "./isPublicWebhookUrl.ts";
+import { isPublicUrl, isHttpUrl } from "../urls/isPublicUrl.ts";
 import { signWebhookPayload } from "./signWebhookPayload.ts";
 
 describe("signWebhookPayload", () => {
@@ -25,20 +25,20 @@ describe("signWebhookPayload", () => {
   });
 });
 
-describe("isWebhookUrl", () => {
+describe("isHttpUrl", () => {
   it("accepts http and https addresses only", () => {
-    expect(isWebhookUrl("https://example.com/hook")).toBe(true);
-    expect(isWebhookUrl("http://localhost:9000/hook")).toBe(true);
-    expect(isWebhookUrl("ftp://example.com")).toBe(false);
-    expect(isWebhookUrl("file:///etc/passwd")).toBe(false);
-    expect(isWebhookUrl("not a url")).toBe(false);
+    expect(isHttpUrl("https://example.com/hook")).toBe(true);
+    expect(isHttpUrl("http://localhost:9000/hook")).toBe(true);
+    expect(isHttpUrl("ftp://example.com")).toBe(false);
+    expect(isHttpUrl("file:///etc/passwd")).toBe(false);
+    expect(isHttpUrl("not a url")).toBe(false);
   });
 });
 
-describe("isPublicWebhookUrl", () => {
+describe("isPublicUrl", () => {
   it("accepts a public address", () => {
-    expect(isPublicWebhookUrl("https://example.com/hook")).toBe(true);
-    expect(isPublicWebhookUrl("https://172.32.0.1/hook")).toBe(true);
+    expect(isPublicUrl("https://example.com/hook")).toBe(true);
+    expect(isPublicUrl("https://172.32.0.1/hook")).toBe(true);
   });
 
   it.each([
@@ -59,11 +59,11 @@ describe("isPublicWebhookUrl", () => {
     "http://[fe80::1]/hook",
     "http://[::ffff:127.0.0.1]/hook",
   ])("rejects the private address %s", (url) => {
-    expect(isPublicWebhookUrl(url)).toBe(false);
+    expect(isPublicUrl(url)).toBe(false);
   });
 
   it("rejects anything that is not a web address", () => {
-    expect(isPublicWebhookUrl("ftp://example.com")).toBe(false);
-    expect(isPublicWebhookUrl("example.com")).toBe(false);
+    expect(isPublicUrl("ftp://example.com")).toBe(false);
+    expect(isPublicUrl("example.com")).toBe(false);
   });
 });

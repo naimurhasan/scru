@@ -1,4 +1,4 @@
-import { calculateCredits, isPublicWebhookUrl, isWebhookUrl } from "@scru/core";
+import { calculateCredits, isPublicUrl, isHttpUrl } from "@scru/core";
 import type { RequestActor, Task } from "@scru/db";
 import type { ApiConfig, ApiDeps } from "../deps.ts";
 import { ApiError } from "../errors/ApiError.ts";
@@ -6,7 +6,7 @@ import { toSearchJob } from "../google/toSearchJob.ts";
 import type { SubmitTaskRequest } from "./schemas.ts";
 
 const isAllowedWebhookUrl = (url: string, config: ApiConfig) =>
-  config.allowPrivateWebhooks ? isWebhookUrl(url) : isPublicWebhookUrl(url);
+  config.allowPrivateWebhooks ? isHttpUrl(url) : isPublicUrl(url);
 
 export const submitTask = async (
   deps: Pick<ApiDeps, "createTask" | "enqueueTask">,

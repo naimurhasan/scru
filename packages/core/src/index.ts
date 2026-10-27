@@ -9,6 +9,22 @@ export {
   type CreditInput,
   type RequestMode,
 } from "./credits/calculateCredits.ts";
+export {
+  calculateFetchCredits,
+  type FetchCreditInput,
+} from "./credits/calculateFetchCredits.ts";
+export {
+  FETCH_OUTPUTS,
+  type FetchJob,
+  type FetchOutput,
+  type InstructionReport,
+  type JsInstruction,
+  type PageFailureReason,
+  type PageOutcome,
+  type PageSnapshot,
+  type ProxyRequest,
+  type RenderJob,
+} from "./fetch/types.ts";
 export type {
   GoogleSearchJob,
   SearchFailureReason,
@@ -27,10 +43,7 @@ export {
   type TaskType,
   type TaskView,
 } from "./tasks/types.ts";
-export {
-  isPublicWebhookUrl,
-  isWebhookUrl,
-} from "./webhooks/isPublicWebhookUrl.ts";
+export { isPublicUrl, isHttpUrl } from "./urls/isPublicUrl.ts";
 export { signWebhookPayload } from "./webhooks/signWebhookPayload.ts";
 export {
   WEBHOOK_EVENTS,
