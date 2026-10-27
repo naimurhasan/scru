@@ -141,12 +141,13 @@ export const ERROR_CODES: DocField[] = [
   {
     name: "FETCH_FAILED",
     type: "502",
-    description: "The results could not be fetched. Nothing is charged.",
+    description:
+      "The page or results could not be fetched. details.reason says why, for example blocked or selector_not_found. Nothing is charged.",
   },
   {
     name: "TIMEOUT",
     type: "504",
-    description: "The search took too long. Nothing is charged.",
+    description: "The request took too long. Nothing is charged.",
   },
 ];
 
@@ -180,5 +181,153 @@ export const LIMIT_HEADERS: DocField[] = [
     name: "X-Credits-Remaining",
     type: "sync search",
     description: "Balance after this request.",
+  },
+];
+
+export const FETCH_REQUEST_FIELDS: DocField[] = [
+  {
+    name: "url",
+    type: "string, required",
+    description: "The page to fetch. Must be a public http or https address.",
+  },
+  {
+    name: "output",
+    type: "string",
+    description:
+      "html (default), markdown, text or screenshot. A screenshot is a base64 PNG of the full page.",
+  },
+  {
+    name: "jsRender",
+    type: "boolean",
+    description:
+      "Run the page's JavaScript before reading it. Needed for pages that build their content in the page, and for screenshots, waitFor, wait and jsInstructions.",
+  },
+  {
+    name: "waitFor",
+    type: "string",
+    description:
+      "CSS selector to wait for before reading the page. Fails with selector_not_found if it never appears.",
+  },
+  {
+    name: "wait",
+    type: "integer, 0–30000",
+    description: "Extra milliseconds to wait before reading the page.",
+  },
+  {
+    name: "jsInstructions",
+    type: "array, up to 20",
+    description:
+      "Steps to run on the page before it is read, such as filling a search box and pressing Enter. See Page instructions.",
+  },
+  {
+    name: "cssExtractor",
+    type: "object",
+    description:
+      'Field name to CSS selector. Add " @attribute" to read an attribute, for example "a.product @href". Returns data instead of content.',
+  },
+  {
+    name: "premiumProxy",
+    type: "boolean",
+    description: "Send the request from another address.",
+  },
+  {
+    name: "country",
+    type: "string",
+    description: "Two-letter country code for the address. Needs premiumProxy.",
+  },
+  {
+    name: "sessionId",
+    type: "string",
+    description:
+      "Requests with the same session id use the same address. Needs premiumProxy; cannot be combined with country.",
+  },
+  {
+    name: "blockResources",
+    type: "boolean",
+    description:
+      "Skip images, fonts and media for a faster answer. Defaults to true.",
+  },
+];
+
+export const FETCH_RESULT_FIELDS: DocField[] = [
+  {
+    name: "url",
+    type: "string",
+    description: "The final address, after any redirects.",
+  },
+  {
+    name: "statusCode",
+    type: "integer",
+    description: "The status the site answered with.",
+  },
+  {
+    name: "output, content",
+    type: "string",
+    description: "The page in the requested output.",
+  },
+  {
+    name: "data",
+    type: "object",
+    description:
+      "With cssExtractor: each field's text, or a list when several elements match.",
+  },
+  {
+    name: "instructions[]",
+    type: "array",
+    description:
+      "With jsInstructions: each step with ok, durationMs and error. A failed step does not fail the request.",
+  },
+];
+
+export const FETCH_INSTRUCTIONS: DocField[] = [
+  { name: "click", type: "selector", description: "Click an element." },
+  {
+    name: "fill",
+    type: "{ selector, value }",
+    description: "Type a value into a field.",
+  },
+  {
+    name: "select",
+    type: "{ selector, value }",
+    description: "Choose an option in a select box.",
+  },
+  {
+    name: "press",
+    type: "key",
+    description: "Press a key, for example Enter or Tab.",
+  },
+  { name: "wait", type: "milliseconds", description: "Pause." },
+  {
+    name: "waitFor",
+    type: "selector",
+    description: "Wait until an element appears.",
+  },
+  {
+    name: "scrollY",
+    type: "pixels",
+    description: "Scroll down, or up with a negative number.",
+  },
+];
+
+export const FETCH_PRICES: DocField[] = [
+  {
+    name: "Plain",
+    type: "1 credit",
+    description: "The page as the site sends it.",
+  },
+  {
+    name: "jsRender",
+    type: "5 credits",
+    description: "The page after its JavaScript has run.",
+  },
+  {
+    name: "premiumProxy",
+    type: "10 credits",
+    description: "Sent from another address.",
+  },
+  {
+    name: "jsRender + premiumProxy",
+    type: "25 credits",
+    description: "Both. Failed requests are always free.",
   },
 ];

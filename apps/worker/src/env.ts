@@ -15,6 +15,10 @@ const envSchema = z.object({
   BROWSER_HEADLESS: flag,
   WEBHOOK_ALLOW_PRIVATE: flag,
   SESSION_POOL_SIZE: z.coerce.number().int().min(0).default(2),
+  WEBSHARE_USERNAME: z.string().default(""),
+  WEBSHARE_PASSWORD: z.string().default(""),
+  WEBSHARE_POOL_SIZE: z.coerce.number().int().positive().default(10),
+  TWOCAPTCHA_API_KEY: z.string().default(""),
 });
 
 export const loadEnv = (source: NodeJS.ProcessEnv = process.env) => {
@@ -26,5 +30,14 @@ export const loadEnv = (source: NodeJS.ProcessEnv = process.env) => {
     headless: env.BROWSER_HEADLESS === "true",
     allowPrivateWebhooks: env.WEBHOOK_ALLOW_PRIVATE === "true",
     sessionPoolSize: env.SESSION_POOL_SIZE,
+    webshare:
+      env.WEBSHARE_USERNAME && env.WEBSHARE_PASSWORD
+        ? {
+            username: env.WEBSHARE_USERNAME,
+            password: env.WEBSHARE_PASSWORD,
+            poolSize: env.WEBSHARE_POOL_SIZE,
+          }
+        : null,
+    twoCaptchaApiKey: env.TWOCAPTCHA_API_KEY || null,
   };
 };

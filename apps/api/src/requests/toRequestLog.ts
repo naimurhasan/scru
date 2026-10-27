@@ -1,40 +1,38 @@
 import type { NewRequestLog, RequestActor } from "@scru/db";
 import { toErrorBody } from "../errors/toErrorBody.ts";
-import type { GoogleSearchExecution } from "./executeGoogleSearch.ts";
-import type { GoogleSearchRequest } from "./schemas.ts";
+import type { Execution } from "./types.ts";
 
 const OK = 200;
 
-export type RequestLogInput = {
+export type RequestLogInput<Body> = {
   actor: RequestActor;
-  request: GoogleSearchRequest;
-  execution: GoogleSearchExecution;
+  engine: string;
+  request: unknown;
+  execution: Execution<Body>;
+  loggedBody: (body: Body) => unknown;
   durationMs: number;
   now: Date;
 };
 
-const withoutHtml = ({ html: _html, ...result }: { html?: string }) => result;
-
-export const toRequestLog = ({
+export const toRequestLog = <Body>({
   actor,
+  engine,
   request,
   execution,
+  loggedBody,
   durationMs,
   now,
-}: RequestLogInput): NewRequestLog => ({
+}: RequestLogInput<Body>): NewRequestLog => ({
   workspaceId: actor.workspaceId,
   apiKeyId: actor.apiKeyId,
-  engine: "google",
+  engine,
   request,
   durationMs,
   ...(execution.ok
     ? {
         httpStatus: OK,
         creditsCharged: execution.creditsCharged,
-        response: {
-          success: true,
-          result: withoutHtml(execution.body.result),
-        },
+        response: loggedBody(execution.body),
       }
     : {
         httpStatus: execution.error.status,

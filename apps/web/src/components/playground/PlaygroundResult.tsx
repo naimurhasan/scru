@@ -1,10 +1,12 @@
 import { CodeBlock } from "@/components/dashboard/CodeBlock";
 import { EmptyTab } from "@/components/playground/EmptyTab";
+import { FetchPreview } from "@/components/playground/preview/FetchPreview";
 import { SearchPreview } from "@/components/playground/preview/SearchPreview";
 import { ResponseMeta } from "@/components/playground/ResponseMeta";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { prettyJson } from "@/lib/format/prettyJson";
+import { readFetchResult } from "@/lib/playground/readFetchResult";
 import { readSearchResult } from "@/lib/playground/readSearchResult";
 import type { PlaygroundRun } from "@/lib/playground/types";
 
@@ -18,13 +20,22 @@ const WAITING = "Waiting for the response…";
 const NOTHING_SENT = "Send a request to see the response here.";
 const NO_PREVIEW = "There is nothing to preview for this response.";
 
+const previewOf = (run: PlaygroundRun) => {
+  if (run.engine === "fetch") {
+    const result = readFetchResult(run.response.body);
+    return result && <FetchPreview result={result} />;
+  }
+  const result = readSearchResult(run.response.body);
+  return result && <SearchPreview query={run.request.query} result={result} />;
+};
+
 export function PlaygroundResult({
   run,
   pending,
   curlSnippet,
 }: PlaygroundResultProps) {
   const finished = pending ? null : run;
-  const result = finished ? readSearchResult(finished.response.body) : null;
+  const preview = finished ? previewOf(finished) : null;
   const emptyMessage = pending ? WAITING : NOTHING_SENT;
 
   return (
@@ -51,9 +62,7 @@ export function PlaygroundResult({
             )}
           </TabsContent>
           <TabsContent value="preview">
-            {finished && result ? (
-              <SearchPreview query={finished.request.query} result={result} />
-            ) : (
+            {preview ?? (
               <EmptyTab message={finished ? NO_PREVIEW : emptyMessage} />
             )}
           </TabsContent>

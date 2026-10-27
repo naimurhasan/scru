@@ -1,22 +1,25 @@
-import { CountrySelect } from "@/components/playground/CountrySelect";
+import type { ReactNode } from "react";
+import { EngineSelect } from "@/components/playground/EngineSelect";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import type { PlaygroundRequest } from "@/lib/playground/types";
+import type { Engine } from "@/lib/playground/types";
 
 type PlaygroundFormProps = {
-  request: PlaygroundRequest;
+  engine: Engine;
   pending: boolean;
-  onChange: (request: PlaygroundRequest) => void;
+  note: string;
+  children: ReactNode;
+  onEngineChange: (engine: Engine) => void;
   onSubmit: () => void;
 };
 
 export function PlaygroundForm({
-  request,
+  engine,
   pending,
-  onChange,
+  note,
+  children,
+  onEngineChange,
   onSubmit,
 }: PlaygroundFormProps) {
   return (
@@ -31,51 +34,13 @@ export function PlaygroundForm({
         >
           <div className="grid gap-2">
             <Label htmlFor="engine">Engine</Label>
-            <Input id="engine" value="Google Search" readOnly disabled />
+            <EngineSelect value={engine} onChange={onEngineChange} />
           </div>
-          <div className="grid gap-2">
-            <Label htmlFor="query">Query</Label>
-            <Textarea
-              id="query"
-              rows={3}
-              required
-              maxLength={500}
-              value={request.query}
-              onChange={(event) =>
-                onChange({ ...request, query: event.target.value })
-              }
-            />
-          </div>
-          <div className="grid gap-2">
-            <Label htmlFor="country">Country</Label>
-            <CountrySelect
-              id="country"
-              value={request.country}
-              onChange={(country) => onChange({ ...request, country })}
-            />
-          </div>
-          <div className="grid gap-2">
-            <Label htmlFor="pages">Pages</Label>
-            <Input
-              id="pages"
-              type="number"
-              min={1}
-              max={10}
-              step={1}
-              required
-              value={request.pages}
-              onChange={(event) =>
-                onChange({ ...request, pages: event.target.valueAsNumber })
-              }
-            />
-          </div>
+          {children}
           <Button type="submit" disabled={pending}>
             {pending ? "Sending…" : "Send request"}
           </Button>
-          <p className="text-xs text-muted-foreground">
-            The first page costs 5 credits and each extra page 2. Results
-            usually arrive in about a second. Failed requests are free.
-          </p>
+          <p className="text-xs text-muted-foreground">{note}</p>
         </form>
       </CardContent>
     </Card>

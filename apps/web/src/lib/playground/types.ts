@@ -1,7 +1,20 @@
-export type PlaygroundRequest = {
+import type { FetchOutput } from "@scru/core";
+
+export type Engine = "google" | "fetch";
+
+export type GoogleSearchRequest = {
   query: string;
   country: string;
   pages: number;
+};
+
+export type FetchRequest = {
+  url: string;
+  output: FetchOutput;
+  jsRender: boolean;
+  waitFor: string;
+  premiumProxy: boolean;
+  country: string;
 };
 
 export type PlaygroundResponse = {
@@ -12,7 +25,10 @@ export type PlaygroundResponse = {
   body: unknown;
 };
 
-export type PlaygroundRun = {
-  request: PlaygroundRequest;
-  response: PlaygroundResponse;
-};
+export type PlaygroundRun =
+  | {
+      engine: "google";
+      request: GoogleSearchRequest;
+      response: PlaygroundResponse;
+    }
+  | { engine: "fetch"; request: FetchRequest; response: PlaygroundResponse };

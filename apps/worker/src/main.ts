@@ -1,4 +1,4 @@
-import { isPublicWebhookUrl, isWebhookUrl } from "@scru/core";
+import { isPublicUrl, isHttpUrl } from "@scru/core";
 import {
   createDatabase,
   findWebhookDelivery,
@@ -8,18 +8,24 @@ import {
 } from "@scru/db";
 import {
   createCloakBrowserProvider,
+  createTwoCaptchaSolver,
+  createWebshareRoutes,
   directRoute,
   harvestSession,
+  passRecaptcha,
 } from "@scru/fetcher";
 import {
+  createRenderWorker,
   createSearchWorker,
   createSessionPool,
   createWebhookQueue,
   createWebhookWorker,
+  RENDER_QUEUE,
   SEARCH_QUEUE,
   WEBHOOK_QUEUE,
 } from "@scru/queue";
 import { connectSessionSearch } from "@scru/search";
+import { createRenderProcessor } from "./createRenderProcessor.ts";
 import { createSearchProcessor } from "./createSearchProcessor.ts";
 import { loadEnv } from "./env.ts";
 import { keepSessionsReady } from "./keepSessionsReady.ts";
@@ -34,10 +40,11 @@ const sessions = createSessionPool(env.redisUrl);
 
 const HARVEST_TIMEOUT_MS = 30_000;
 const KEEPER_INTERVAL_MS = 20_000;
+const RENDER_TIMEOUT_MS = 30_000;
 
 const provider = createCloakBrowserProvider({
   profileDir: env.profileDir,
-  route: directRoute.nextRoute(),
+  route: {},
   headless: env.headless,
   locale: "en-US",
 });
@@ -68,6 +75,27 @@ const search = createSearchWorker(
   }),
 );
 
+const solveRecaptcha = env.twoCaptchaApiKey
+  ? createTwoCaptchaSolver(env.twoCaptchaApiKey)
+  : null;
+
+const renders = createRenderWorker(
+  env.redisUrl,
+  createRenderProcessor({
+    sharedBrowser: provider,
+    routes: env.webshare ? createWebshareRoutes(env.webshare) : directRoute,
+    headless: env.headless,
+    options: {
+      timeoutMs: RENDER_TIMEOUT_MS,
+      passCaptcha: async (tab) => {
+        const result = await passRecaptcha(tab, solveRecaptcha);
+        if (result !== "absent")
+          console.log(`CAPTCHA on ${tab.url()}: ${result}`);
+      },
+    },
+  }),
+);
+
 const webhooks = createWebhookWorker(
   env.redisUrl,
   createWebhookProcessor({
@@ -75,12 +103,14 @@ const webhooks = createWebhookWorker(
     recordAttempt: (deliveryId, attempt) =>
       recordWebhookAttempt(database.db, deliveryId, attempt),
     send: sendWebhook,
-    isAllowedUrl: env.allowPrivateWebhooks ? isWebhookUrl : isPublicWebhookUrl,
+    isAllowedUrl: env.allowPrivateWebhooks ? isHttpUrl : isPublicUrl,
   }),
 );
 
 search.worker.on("ready", () =>
-  console.log(`Worker listening on ${SEARCH_QUEUE} and ${WEBHOOK_QUEUE}`),
+  console.log(
+    `Worker listening on ${SEARCH_QUEUE}, ${RENDER_QUEUE} and ${WEBHOOK_QUEUE}`,
+  ),
 );
 search.worker.on("completed", (job, outcome) =>
   console.log(
@@ -89,6 +119,14 @@ search.worker.on("completed", (job, outcome) =>
 );
 search.worker.on("failed", (job, error) =>
   console.error(`Search ${job?.id} crashed: ${error.message}`),
+);
+renders.worker.on("completed", (job, outcome) =>
+  console.log(
+    `Render ${job.id} ${outcome.ok ? "succeeded" : `failed: ${outcome.reason}`}`,
+  ),
+);
+renders.worker.on("failed", (job, error) =>
+  console.error(`Render ${job?.id} crashed: ${error.message}`),
 );
 webhooks.worker.on("completed", (job) =>
   console.log(`Webhook ${job.data.deliveryId} delivered`),
@@ -100,6 +138,7 @@ webhooks.worker.on("failed", (job, error) =>
 const shutdown = async () => {
   keeper.stop();
   await search.close();
+  await renders.close();
   await webhooks.close();
   await webhookQueue.close();
   await provider.close();

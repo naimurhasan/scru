@@ -10,6 +10,9 @@ const envSchema = z.object({
   SYNC_TIMEOUT_MS: z.coerce.number().int().positive().default(120_000),
   RATE_LIMIT_PER_SECOND: z.coerce.number().int().positive().default(10),
   WEBHOOK_ALLOW_PRIVATE: flag,
+  WEBSHARE_USERNAME: z.string().default(""),
+  WEBSHARE_PASSWORD: z.string().default(""),
+  WEBSHARE_POOL_SIZE: z.coerce.number().int().positive().default(10),
 });
 
 export const loadEnv = (source: NodeJS.ProcessEnv = process.env) => {
@@ -22,5 +25,13 @@ export const loadEnv = (source: NodeJS.ProcessEnv = process.env) => {
     syncTimeoutMs: env.SYNC_TIMEOUT_MS,
     rateLimitPerSecond: env.RATE_LIMIT_PER_SECOND,
     allowPrivateWebhooks: env.WEBHOOK_ALLOW_PRIVATE === "true",
+    webshare:
+      env.WEBSHARE_USERNAME && env.WEBSHARE_PASSWORD
+        ? {
+            username: env.WEBSHARE_USERNAME,
+            password: env.WEBSHARE_PASSWORD,
+            poolSize: env.WEBSHARE_POOL_SIZE,
+          }
+        : null,
   };
 };

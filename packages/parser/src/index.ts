@@ -9,3 +9,11 @@ export type {
   PeopleAlsoAskItem,
   RelatedSearch,
 } from "./google/types.ts";
+export { extractWithCss, type ExtractedValue } from "./page/extractWithCss.ts";
+export {
+  isValidExtractorRule,
+  readExtractorRule,
+  type ExtractorRule,
+} from "./page/readExtractorRule.ts";
+export { toMarkdown } from "./page/toMarkdown.ts";
+export { toText } from "./page/toText.ts";

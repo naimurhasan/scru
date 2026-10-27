@@ -1,6 +1,6 @@
 "use server";
 
-import { isPublicWebhookUrl, isWebhookUrl } from "@scru/core";
+import { isPublicUrl, isHttpUrl } from "@scru/core";
 import { saveWebhookUrl } from "@scru/db";
 import { revalidatePath } from "next/cache";
 import { db } from "@/lib/db";
@@ -12,9 +12,7 @@ const MAX_URL_LENGTH = 2_000;
 
 const isAllowed = (url: string) =>
   url.length <= MAX_URL_LENGTH &&
-  (env.WEBHOOK_ALLOW_PRIVATE === "true"
-    ? isWebhookUrl(url)
-    : isPublicWebhookUrl(url));
+  (env.WEBHOOK_ALLOW_PRIVATE === "true" ? isHttpUrl(url) : isPublicUrl(url));
 
 export const saveWebhookUrlAction = async (
   _previous: WebhookFormState,

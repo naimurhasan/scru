@@ -4,18 +4,27 @@ import { DocsSection } from "@/components/docs/DocsSection";
 import { FieldTable } from "@/components/docs/FieldTable";
 import {
   ERROR_CODES,
+  FETCH_INSTRUCTIONS,
+  FETCH_PRICES,
+  FETCH_REQUEST_FIELDS,
+  FETCH_RESULT_FIELDS,
   LIMIT_HEADERS,
   SEARCH_REQUEST_FIELDS,
   SEARCH_RESULT_FIELDS,
   TASK_REQUEST_FIELDS,
 } from "@/lib/docs/docFields";
 import {
+  buildFetchQuery,
   buildTaskCurl,
   EXAMPLE_TASK,
+  FETCH_EXAMPLE_BODY,
+  FETCH_EXAMPLE_RESPONSE,
+  FETCH_INSTRUCTIONS_EXAMPLE,
   VERIFY_SIGNATURE,
 } from "@/lib/docs/examples";
 import { env } from "@/lib/env";
 import { prettyJson } from "@/lib/format/prettyJson";
+import { buildCurlSnippet } from "@/lib/playground/buildCurlSnippet";
 
 export const metadata: Metadata = { title: "API reference" };
 
@@ -67,6 +76,56 @@ export default function ReferencePage() {
         <FieldTable fields={SEARCH_REQUEST_FIELDS} />
         <h3 className="font-medium">Result</h3>
         <FieldTable fields={SEARCH_RESULT_FIELDS} />
+      </DocsSection>
+
+      <DocsSection id="fetch" title="Fetch">
+        <CodeBlock
+          code={["POST /v1/fetch", "GET  /v1/fetch?url=…"].join("\n")}
+          label="Endpoints"
+        />
+        <p>
+          Fetches any public page and returns it as HTML, Markdown, plain text,
+          a screenshot, or JSON picked out with CSS selectors. Pages that block
+          automated visitors are retried automatically, and nothing is charged
+          if the page cannot be fetched.
+        </p>
+        <h3 className="font-medium">Body</h3>
+        <FieldTable fields={FETCH_REQUEST_FIELDS} />
+        <CodeBlock
+          code={buildCurlSnippet(env.API_URL, "/v1/fetch", FETCH_EXAMPLE_BODY)}
+          label="Request"
+        />
+        <CodeBlock
+          code={prettyJson(FETCH_EXAMPLE_RESPONSE)}
+          label="Response"
+          language="json"
+        />
+        <h3 className="font-medium">Result</h3>
+        <FieldTable fields={FETCH_RESULT_FIELDS} />
+        <h3 className="font-medium">Query string</h3>
+        <p>
+          <code>GET /v1/fetch</code> takes the same fields as query parameters.
+          Send booleans as <code>true</code> or <code>false</code>, and{" "}
+          <code>cssExtractor</code> and <code>jsInstructions</code> as JSON.
+        </p>
+        <CodeBlock code={buildFetchQuery(env.API_URL)} label="Request" />
+        <h3 className="font-medium">Price</h3>
+        <FieldTable fields={FETCH_PRICES} />
+      </DocsSection>
+
+      <DocsSection id="page-instructions" title="Page instructions">
+        <p>
+          With <code>jsRender</code>, <code>jsInstructions</code> runs up to 20
+          steps on the page before it is read. Each step is an object with one
+          key. Every step gets 10 seconds, and the result reports how each one
+          went.
+        </p>
+        <FieldTable fields={FETCH_INSTRUCTIONS} />
+        <CodeBlock
+          code={prettyJson(FETCH_INSTRUCTIONS_EXAMPLE)}
+          label="jsInstructions"
+          language="json"
+        />
       </DocsSection>
 
       <DocsSection id="async-tasks" title="Async tasks">

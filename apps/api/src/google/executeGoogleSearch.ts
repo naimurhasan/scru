@@ -2,32 +2,16 @@ import { calculateCredits } from "@scru/core";
 import type { RequestActor } from "@scru/db";
 import type { ApiDeps } from "../deps.ts";
 import { ApiError } from "../errors/ApiError.ts";
+import { insufficientCredits } from "../requests/insufficientCredits.ts";
+import type { Execution } from "../requests/types.ts";
 import type { GoogleSearchRequest, GoogleSearchResponse } from "./schemas.ts";
 import { toSearchJob } from "./toSearchJob.ts";
-
-export type GoogleSearchExecution =
-  | {
-      ok: true;
-      body: GoogleSearchResponse;
-      creditsCharged: number;
-      creditsRemaining: number;
-    }
-  | { ok: false; error: ApiError };
-
-const insufficientCredits = (cost: number): GoogleSearchExecution => ({
-  ok: false,
-  error: new ApiError(
-    "INSUFFICIENT_CREDITS",
-    "Not enough credits for this request",
-    { required: cost },
-  ),
-});
 
 export const executeGoogleSearch = async (
   deps: Pick<ApiDeps, "searchGoogle" | "chargeCredits">,
   actor: RequestActor,
   request: GoogleSearchRequest,
-): Promise<GoogleSearchExecution> => {
+): Promise<Execution<GoogleSearchResponse>> => {
   const estimate = calculateCredits({ pages: request.pages, mode: "sync" });
   if (actor.credits < estimate) return insufficientCredits(estimate);
 
