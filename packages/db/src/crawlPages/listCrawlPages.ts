@@ -1,4 +1,5 @@
 import type { CrawledPage } from "@scru/core";
+import type { ExtractedData } from "@scru/parser";
 import { and, asc, eq, gt } from "drizzle-orm";
 import type { Database } from "../client.ts";
 import { crawlPages } from "../schema.ts";
@@ -20,13 +21,17 @@ export const listCrawlPages = async (
       depth: crawlPages.depth,
       statusCode: crawlPages.statusCode,
       content: crawlPages.content,
+      pageType: crawlPages.pageType,
+      data: crawlPages.data,
       error: crawlPages.error,
     })
     .from(crawlPages)
     .where(and(eq(crawlPages.taskId, taskId), gt(crawlPages.position, after)))
     .orderBy(asc(crawlPages.position))
     .limit(limit + 1);
-  const pages = rows.slice(0, limit);
+  const pages = rows
+    .slice(0, limit)
+    .map((row) => ({ ...row, data: row.data as ExtractedData | null }));
   return {
     pages,
     nextCursor: rows.length > limit ? (pages.at(-1)?.position ?? null) : null,

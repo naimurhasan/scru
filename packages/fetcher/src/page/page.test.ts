@@ -64,7 +64,11 @@ const job: FetchJob = {
 
 const rendered: PageOutcome = {
   ok: true,
-  page: { ...page(200, "<h1>Rendered</h1>"), screenshot: null, instructions: [] },
+  page: {
+    ...page(200, "<h1>Rendered</h1>"),
+    screenshot: null,
+    instructions: [],
+  },
 };
 
 const createDeps = () => ({
@@ -81,7 +85,11 @@ describe("createFetchPage", () => {
 
     expect(outcome).toEqual({
       ok: true,
-      page: { ...page(200, "<h1>Deals</h1>"), screenshot: null, instructions: [] },
+      page: {
+        ...page(200, "<h1>Deals</h1>"),
+        screenshot: null,
+        instructions: [],
+      },
     });
     expect(deps.render).not.toHaveBeenCalled();
   });

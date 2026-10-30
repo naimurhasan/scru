@@ -1,6 +1,7 @@
 import type { FetchOutput } from "@scru/core";
 import { CountrySelect } from "@/components/playground/CountrySelect";
 import { ToggleField } from "@/components/playground/ToggleField";
+import { UrlField } from "@/components/playground/UrlField";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { NativeSelect } from "@/components/ui/native-select";
@@ -20,20 +21,11 @@ export function FetchFields({ request, onChange }: FetchFieldsProps) {
 
   return (
     <>
-      <div className="grid gap-2">
-        <Label htmlFor="url">URL</Label>
-        <Input
-          id="url"
-          type="url"
-          required
-          maxLength={2_000}
-          placeholder="https://example.com/"
-          value={request.url}
-          onChange={(event) =>
-            onChange({ ...request, url: event.target.value })
-          }
-        />
-      </div>
+      <UrlField
+        value={request.url}
+        placeholder="https://example.com/"
+        onChange={(url) => onChange({ ...request, url })}
+      />
       <div className="grid gap-2">
         <Label htmlFor="output">Output</Label>
         <NativeSelect

@@ -6,6 +6,7 @@ import {
   errorOf,
   queuedTask,
   send,
+  storedExtractor,
   taskId,
 } from "../testSupport.ts";
 
@@ -36,6 +37,7 @@ describe("POST /v1/crawl", () => {
     expect(deps.enqueueCrawl).toHaveBeenCalledWith(
       {
         taskId,
+        workspaceId: actor.workspaceId,
         url,
         maxDepth: 2,
         limit: 50,
@@ -92,6 +94,45 @@ describe("POST /v1/crawl", () => {
     ]);
   });
 
+  it("reserves the cost of preparing the site for a JSON crawl", async () => {
+    const deps = createDeps();
+    deps.findApiKey.mockResolvedValue({ ...actor, credits: 45 });
+    const response = await submit(deps, { url, output: "json", limit: 10 });
+
+    expect(response.status).toBe(403);
+    expect((await errorOf(response)).details).toEqual({ required: 46 });
+  });
+
+  it("reserves only the pages when the site already has an extractor", async () => {
+    const deps = createDeps();
+    deps.findApiKey.mockResolvedValue({ ...actor, credits: 10 });
+    deps.findLatestExtractor.mockResolvedValue(storedExtractor);
+    deps.createTask.mockResolvedValue(crawlTask);
+    const response = await submit(deps, { url, output: "json", limit: 10 });
+
+    expect(response.status).toBe(202);
+    expect(deps.findLatestExtractor).toHaveBeenCalledWith(
+      actor.workspaceId,
+      "shop.example",
+    );
+  });
+
+  it("refuses a JSON crawl of an unprepared site when extractors are not set up", async () => {
+    const response = await send(
+      createDeps(),
+      "POST",
+      "/v1/crawl",
+      { url, output: "json" },
+      undefined,
+      { ...config, extractorsEnabled: false },
+    );
+
+    expect(response.status).toBe(400);
+    expect((await errorOf(response)).details).toEqual([
+      expect.objectContaining({ field: "output" }),
+    ]);
+  });
+
   it("refuses a premium proxy when none is set up", async () => {
     const response = await send(
       createDeps(),
@@ -114,6 +155,8 @@ describe("GET /v1/crawl/{taskId}/pages", () => {
       depth: 0,
       statusCode: 200,
       content: "<h1>Shop</h1>",
+      pageType: null,
+      data: null,
       error: null,
     },
   ];

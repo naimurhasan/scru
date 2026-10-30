@@ -1,11 +1,17 @@
 import {
   Activity,
+  ArrowLeft,
+  ArrowRight,
   BarChart3,
-  FlaskConical,
+  Braces,
   KeyRound,
+  Layers,
+  List,
+  Search,
   Webhook,
 } from "lucide-react";
 import { SignOutButton } from "@/components/auth/SignOutButton";
+import { SidebarGroup } from "@/components/dashboard/SidebarGroup";
 import { SidebarLink } from "@/components/dashboard/SidebarLink";
 
 type SidebarProps = {
@@ -28,22 +34,48 @@ export function Sidebar({ workspaceName, credits, email }: SidebarProps) {
           <BarChart3 />
           Overview
         </SidebarLink>
-        <SidebarLink href="/dashboard/playground">
-          <FlaskConical />
-          Playground
-        </SidebarLink>
-        <SidebarLink href="/dashboard/api-keys">
-          <KeyRound />
-          API keys
-        </SidebarLink>
-        <SidebarLink href="/dashboard/webhooks">
-          <Webhook />
-          Webhooks
-        </SidebarLink>
         <SidebarLink href="/dashboard/logs">
           <Activity />
-          Logs
+          Activity log
         </SidebarLink>
+        <SidebarGroup title="Playground">
+          <SidebarLink href="/dashboard/fetch">
+            <Layers />
+            Fetch
+          </SidebarLink>
+          <SidebarLink href="/dashboard/extract">
+            <Braces />
+            Extract
+          </SidebarLink>
+          <SidebarLink href="/dashboard/crawl">
+            <ArrowLeft />
+            Crawl
+          </SidebarLink>
+          <SidebarLink href="/dashboard/batch">
+            <List />
+            Batch
+          </SidebarLink>
+          <SidebarLink href="/dashboard/search">
+            <Search />
+            Google search
+          </SidebarLink>
+        </SidebarGroup>
+        <SidebarGroup title="Sites">
+          <SidebarLink href="/dashboard/extractors">
+            <ArrowRight />
+            Learned sites
+          </SidebarLink>
+        </SidebarGroup>
+        <SidebarGroup title="Account">
+          <SidebarLink href="/dashboard/api-keys">
+            <KeyRound />
+            API keys
+          </SidebarLink>
+          <SidebarLink href="/dashboard/webhooks">
+            <Webhook />
+            Webhooks
+          </SidebarLink>
+        </SidebarGroup>
       </nav>
       <div className="mt-auto grid grid-cols-[minmax(0,1fr)] gap-3">
         <div className="rounded-lg border border-sidebar-border px-3 py-2">

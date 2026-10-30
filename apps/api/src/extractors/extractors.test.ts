@@ -1,4 +1,3 @@
-import type { StoredExtractor } from "@scru/core";
 import { describe, expect, it } from "vitest";
 import {
   actor,
@@ -7,38 +6,10 @@ import {
   errorOf,
   queuedTask,
   send,
+  storedExtractor as extractor,
   taskId,
 } from "../testSupport.ts";
 import type { ExtractResponse } from "./schemas.ts";
-
-const extractor: StoredExtractor = {
-  id: "extractor-1",
-  host: "shop.example",
-  version: 2,
-  model: "test/model",
-  createdAt: new Date("2026-10-27T10:00:00.000Z"),
-  fetchOptions: {
-    jsRender: false,
-    instructions: [],
-    waitFor: null,
-    waitMs: 0,
-    screenshot: false,
-    blockResources: true,
-    proxy: null,
-  },
-  pageTypes: [
-    {
-      name: "product_list",
-      pattern: "/c/*",
-      itemSelector: "article",
-      fillRate: 1,
-      fields: [
-        { name: "title", description: "", selector: "h3", attribute: null },
-        { name: "link", description: "", selector: "a", attribute: "href" },
-      ],
-    },
-  ],
-};
 
 const listingHtml =
   '<article><h3>Chair</h3><a href="/p/1">x</a></article><article><h3>Lamp</h3><a href="/p/2">x</a></article>';
@@ -152,22 +123,91 @@ describe("POST /v1/extract", () => {
     expect(deps.recordRequest.mock.calls[0]?.[0].engine).toBe("extract");
   });
 
-  it("answers 404 when the site has no extractor", async () => {
+  it("starts preparing a site with no extractor and answers 202", async () => {
     const deps = createDeps();
+    deps.createTask.mockResolvedValue({ ...queuedTask, taskType: "EXTRACTOR" });
     const response = await extract(deps, "https://shop.example/c/chairs");
 
-    expect(response.status).toBe(404);
+    expect(response.status).toBe(202);
+    expect(await response.json()).toMatchObject({
+      success: true,
+      status: "PREPARING",
+      task: { id: taskId, taskType: "EXTRACTOR" },
+    });
+    expect(deps.enqueueExtractor.mock.calls[0]?.[0].url).toBe(
+      "https://shop.example/c/chairs",
+    );
     expect(deps.fetchPage).not.toHaveBeenCalled();
   });
 
-  it("answers 404 with the known patterns when no page type matches", async () => {
+  it("answers with the preparation already running for the site", async () => {
+    const deps = createDeps();
+    deps.listPreparations.mockResolvedValue([
+      {
+        ...queuedTask,
+        taskType: "EXTRACTOR",
+        status: "PROCESSING",
+        payload: { url: "https://shop.example/" },
+      },
+    ]);
+    const response = await extract(deps, "https://shop.example/c/chairs");
+
+    expect(response.status).toBe(202);
+    expect(deps.createTask).not.toHaveBeenCalled();
+  });
+
+  it("answers 404 for a site with no extractor when extractors are not set up", async () => {
+    const response = await send(
+      createDeps(),
+      "POST",
+      "/v1/extract",
+      { url: "https://shop.example/c/chairs" },
+      undefined,
+      { ...config, extractorsEnabled: false },
+    );
+
+    expect(response.status).toBe(404);
+  });
+
+  it("answers 404 with the known patterns when no page type fits the page", async () => {
     const deps = createDeps();
     deps.findLatestExtractor.mockResolvedValue(extractor);
+    deps.fetchPage.mockResolvedValue({
+      ok: true,
+      page: {
+        url: "https://shop.example/about",
+        status: 200,
+        html: "<p>About us</p>",
+        screenshot: null,
+        instructions: [],
+      },
+    });
     const response = await extract(deps, "https://shop.example/about");
 
     expect(response.status).toBe(404);
     expect((await errorOf(response)).details).toEqual({ patterns: ["/c/*"] });
     expect(deps.chargeCredits).not.toHaveBeenCalled();
+  });
+
+  it("extracts a page outside the patterns when a page type fits it", async () => {
+    const deps = createDeps();
+    deps.findLatestExtractor.mockResolvedValue(extractor);
+    deps.fetchPage.mockResolvedValue({
+      ok: true,
+      page: {
+        url: "https://shop.example/",
+        status: 200,
+        html: listingHtml,
+        screenshot: null,
+        instructions: [],
+      },
+    });
+    const response = await extract(deps, "https://shop.example/");
+
+    expect(response.status).toBe(200);
+    expect(((await response.json()) as ExtractResponse).result.pageType).toBe(
+      "product_list",
+    );
   });
 
   it("charges nothing when the page cannot be fetched", async () => {

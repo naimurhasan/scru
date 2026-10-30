@@ -25,20 +25,22 @@ export const taskParamsSchema = z.object({
   taskId: z.uuid().openapi({ param: { name: "taskId", in: "path" } }),
 });
 
+export const taskViewSchema = z.object({
+  id: z.string(),
+  taskType: z.string(),
+  status: z.string().openapi({ example: "QUEUED" }),
+  payload: z.unknown(),
+  result: z.unknown(),
+  error: z.object({ code: z.string(), message: z.string() }).nullable(),
+  creditsCharged: z.number().int(),
+  createdAt: z.string(),
+  startedAt: z.string().nullable(),
+  completedAt: z.string().nullable(),
+});
+
 export const taskResponseSchema = z
   .object({
     success: z.literal(true),
-    task: z.object({
-      id: z.string(),
-      taskType: z.string(),
-      status: z.string().openapi({ example: "QUEUED" }),
-      payload: z.unknown(),
-      result: z.unknown(),
-      error: z.object({ code: z.string(), message: z.string() }).nullable(),
-      creditsCharged: z.number().int(),
-      createdAt: z.string(),
-      startedAt: z.string().nullable(),
-      completedAt: z.string().nullable(),
-    }),
+    task: taskViewSchema,
   })
   .openapi("TaskResponse");

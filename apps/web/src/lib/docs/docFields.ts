@@ -359,7 +359,8 @@ export const CRAWL_REQUEST_FIELDS: DocField[] = [
   {
     name: "output",
     type: "string",
-    description: "html (default), markdown or text for each page.",
+    description:
+      "html (default), markdown or text for each page, or json to read every page with the site's extractor. A site with no extractor yet is prepared first.",
   },
   {
     name: "jsRender, blockResources, premiumProxy, country",
@@ -391,6 +392,12 @@ export const CRAWL_PAGE_FIELDS: DocField[] = [
     name: "statusCode, content",
     type: "integer, string",
     description: "What the site answered, in the requested output.",
+  },
+  {
+    name: "pageType, data",
+    type: "string, object or array",
+    description:
+      "With output json: which page type fit the page and its records, as in Extract. Both are null for a page no page type fits.",
   },
   {
     name: "error",
@@ -425,7 +432,7 @@ export const EXTRACT_RESULT_FIELDS: DocField[] = [
     name: "pageType",
     type: "string",
     description:
-      "Which kind of page the address matched, for example product_detail.",
+      "Which kind of page it is, for example product_detail. Matched by address first, then by which page type fits the page best.",
   },
   {
     name: "data",
@@ -437,5 +444,30 @@ export const EXTRACT_RESULT_FIELDS: DocField[] = [
     name: "extractor",
     type: "object",
     description: "The id and version that read the page.",
+  },
+];
+
+export const BATCH_REQUEST_FIELDS: DocField[] = [
+  {
+    name: "urls",
+    type: "string[], 1–1,000, required",
+    description: "The pages to fetch. They may come from any sites.",
+  },
+  {
+    name: "output",
+    type: "string",
+    description:
+      "html (default), markdown or text for each page, or json to read each page with its site's extractor. Sites with no extractor yet are prepared first.",
+  },
+  {
+    name: "jsRender, blockResources, premiumProxy, country",
+    type: "as in Fetch",
+    description: "Applied to every page of the batch.",
+  },
+  {
+    name: "priority, idempotencyKey, webhook.url",
+    type: "as in Async tasks",
+    description:
+      "A batch is a task, so it queues, polls and notifies the same way.",
   },
 ];

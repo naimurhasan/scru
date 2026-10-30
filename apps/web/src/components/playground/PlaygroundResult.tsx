@@ -1,11 +1,13 @@
 import { CodeBlock } from "@/components/dashboard/CodeBlock";
 import { EmptyTab } from "@/components/playground/EmptyTab";
+import { ExtractPreview } from "@/components/playground/preview/ExtractPreview";
 import { FetchPreview } from "@/components/playground/preview/FetchPreview";
 import { SearchPreview } from "@/components/playground/preview/SearchPreview";
 import { ResponseMeta } from "@/components/playground/ResponseMeta";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { prettyJson } from "@/lib/format/prettyJson";
+import { readExtractResult } from "@/lib/playground/readExtractResult";
 import { readFetchResult } from "@/lib/playground/readFetchResult";
 import { readSearchResult } from "@/lib/playground/readSearchResult";
 import type { PlaygroundRun } from "@/lib/playground/types";
@@ -21,6 +23,10 @@ const NOTHING_SENT = "Send a request to see the response here.";
 const NO_PREVIEW = "There is nothing to preview for this response.";
 
 const previewOf = (run: PlaygroundRun) => {
+  if (run.engine === "extract") {
+    const result = readExtractResult(run.response.body);
+    return result && <ExtractPreview result={result} />;
+  }
   if (run.engine === "fetch") {
     const result = readFetchResult(run.response.body);
     return result && <FetchPreview result={result} />;

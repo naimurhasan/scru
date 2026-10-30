@@ -7,6 +7,7 @@ import {
   listExtractorsRoute,
   prepareExtractorRoute,
 } from "./extractorRoutes.ts";
+import { startPreparation } from "./startPreparation.ts";
 import { submitPreparation } from "./submitPreparation.ts";
 import { toExtractorView } from "./toExtractorView.ts";
 
@@ -35,6 +36,22 @@ export const registerExtractorRoutes = (
 
   app.openapi(extractRoute, async (c) => {
     const request = c.req.valid("json");
+    const actor = c.get("actor");
+    const extractor = await deps.findLatestExtractor(
+      actor.workspaceId,
+      new URL(request.url).hostname,
+    );
+    if (!extractor && config.extractorsEnabled) {
+      const task = await startPreparation(deps, config, actor, request.url);
+      return c.json(
+        {
+          success: true as const,
+          status: "PREPARING" as const,
+          task: toTaskView(task),
+        },
+        202,
+      );
+    }
     const body = await meterRequest(c, deps, {
       engine: "extract",
       request,

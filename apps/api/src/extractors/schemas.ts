@@ -1,5 +1,6 @@
 import { z } from "@hono/zod-openapi";
 import { countrySchema, publicUrlSchema } from "../fetch/schemas.ts";
+import { taskViewSchema } from "../tasks/schemas.ts";
 
 const LOWEST_PRIORITY = 1;
 const HIGHEST_PRIORITY = 10;
@@ -72,6 +73,11 @@ export type ExtractRequest = z.infer<typeof extractRequestSchema>;
 
 const extractedRecord = z.record(z.string(), z.string().nullable());
 
+export const extractedDataSchema = z.union([
+  extractedRecord,
+  z.array(extractedRecord),
+]);
+
 export const extractResponseSchema = z
   .object({
     success: z.literal(true),
@@ -80,9 +86,17 @@ export const extractResponseSchema = z
       statusCode: z.number().int(),
       extractor: z.object({ id: z.string(), version: z.number().int() }),
       pageType: z.string(),
-      data: z.union([extractedRecord, z.array(extractedRecord)]),
+      data: extractedDataSchema,
     }),
   })
   .openapi("ExtractResponse");
 
 export type ExtractResponse = z.infer<typeof extractResponseSchema>;
+
+export const extractPreparingResponseSchema = z
+  .object({
+    success: z.literal(true),
+    status: z.literal("PREPARING"),
+    task: taskViewSchema,
+  })
+  .openapi("ExtractPreparing");

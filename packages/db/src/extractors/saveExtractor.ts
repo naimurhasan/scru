@@ -7,7 +7,7 @@ import { toStoredExtractor } from "./toStoredExtractor.ts";
 
 export type NewExtractor = {
   workspaceId: string;
-  taskId: string;
+  taskId: string | null;
   host: string;
   pageTypes: PageType[];
   fetchOptions: ExtractorFetchOptions;

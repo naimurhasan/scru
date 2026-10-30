@@ -9,19 +9,22 @@ export {
   type CreditInput,
   type RequestMode,
 } from "./credits/calculateCredits.ts";
+export type { BatchJob, BatchOutcome } from "./batch/types.ts";
+export { toBatchSettlement } from "./batch/toBatchSettlement.ts";
 export {
   CRAWL_OUTPUTS,
   type CrawledPage,
+  type CrawlExtractor,
   type CrawlJob,
   type CrawlOutcome,
   type CrawlOutput,
+  type CrawlProgress,
   type CrawlStop,
 } from "./crawl/types.ts";
 export { toCrawlSettlement } from "./crawl/toCrawlSettlement.ts";
-export {
-  PREPARATION_CREDITS,
-  toExtractorSettlement,
-} from "./extractor/toExtractorSettlement.ts";
+export { isTaskPending } from "./tasks/isTaskPending.ts";
+export { calculatePreparationCredits } from "./credits/calculatePreparationCredits.ts";
+export { toExtractorSettlement } from "./extractor/toExtractorSettlement.ts";
 export type {
   ExtractorFetchOptions,
   ExtractorJob,

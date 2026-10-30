@@ -2,17 +2,22 @@ import {
   calculateFetchCredits,
   type CrawledPage,
   type CrawlJob,
-  type CrawlOutcome,
+  type CrawlProgress,
   type FetchJob,
   type PageOutcome,
 } from "@scru/core";
-import { convertHtml, extractLinks } from "@scru/parser";
+import { extractLinks } from "@scru/parser";
 import { normalizeUrl } from "./normalizeUrl.ts";
 import { isAllowedByRobots, parseRobots } from "./robots.ts";
 import { shouldVisit } from "./shouldVisit.ts";
 
+export type PageContent = Pick<CrawledPage, "content" | "pageType" | "data">;
+
+const NO_CONTENT: PageContent = { content: null, pageType: null, data: null };
+
 export type CrawlDeps = {
   fetchPage: (job: FetchJob) => Promise<PageOutcome>;
+  readPage: (html: string, pageUrl: string) => PageContent;
   fetchRobots: (origin: string) => Promise<string | null>;
   savePage: (page: CrawledPage) => Promise<void>;
   pause: () => Promise<void>;
@@ -31,7 +36,7 @@ const pathOf = (link: string) => {
 export const runCrawl = async (
   deps: CrawlDeps,
   job: CrawlJob,
-): Promise<CrawlOutcome> => {
+): Promise<CrawlProgress> => {
   const start = normalizeUrl(job.url);
   const { origin, hostname: host } = new URL(start);
   const robots = parseRobots((await deps.fetchRobots(origin)) ?? "");
@@ -62,7 +67,7 @@ export const runCrawl = async (
         url: visit.url,
         depth: visit.depth,
         statusCode: null,
-        content: null,
+        ...NO_CONTENT,
         error: outcome.reason,
       });
       failed += 1;
@@ -74,7 +79,7 @@ export const runCrawl = async (
       url: visit.url,
       depth: visit.depth,
       statusCode: outcome.page.status,
-      content: convertHtml(outcome.page.html, job.output),
+      ...deps.readPage(outcome.page.html, outcome.page.url),
       error: null,
     });
     fetched += 1;

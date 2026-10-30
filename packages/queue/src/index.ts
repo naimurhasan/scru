@@ -1,3 +1,4 @@
+export { createBatchWorker, type BatchProcessor } from "./createBatchWorker.ts";
 export { createCrawlWorker, type CrawlProcessor } from "./createCrawlWorker.ts";
 export {
   createExtractorWorker,
@@ -33,6 +34,7 @@ export {
   type WebhookProcessor,
 } from "./createWebhookWorker.ts";
 export {
+  BATCH_QUEUE,
   CRAWL_QUEUE,
   EXTRACTOR_QUEUE,
   RENDER_QUEUE,

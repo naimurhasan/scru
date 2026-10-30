@@ -1,4 +1,4 @@
-import type { PageOutcome, SearchOutcome } from "@scru/core";
+import type { PageOutcome, SearchOutcome, StoredExtractor } from "@scru/core";
 import type { Task } from "@scru/db";
 import { vi } from "vitest";
 import { createApp } from "./app.ts";
@@ -18,6 +18,35 @@ export const config: ApiConfig = {
   allowPrivateWebhooks: false,
   proxiesEnabled: true,
   extractorsEnabled: true,
+};
+
+export const storedExtractor: StoredExtractor = {
+  id: "extractor-1",
+  host: "shop.example",
+  version: 2,
+  model: "test/model",
+  createdAt: new Date("2026-10-27T10:00:00.000Z"),
+  fetchOptions: {
+    jsRender: false,
+    instructions: [],
+    waitFor: null,
+    waitMs: 0,
+    screenshot: false,
+    blockResources: true,
+    proxy: null,
+  },
+  pageTypes: [
+    {
+      name: "product_list",
+      pattern: "/c/*",
+      itemSelector: "article",
+      fillRate: 1,
+      fields: [
+        { name: "title", description: "", selector: "h3", attribute: null },
+        { name: "link", description: "", selector: "a", attribute: "href" },
+      ],
+    },
+  ],
 };
 
 export const workspaceId = "0b8f7a52-6c1d-4a0e-9d3b-2f4e5a6b7c8d";
@@ -95,8 +124,11 @@ export const createDeps = () => ({
   findTask: vi.fn<ApiDeps["findTask"]>(async () => queuedTask),
   enqueueTask: vi.fn<ApiDeps["enqueueTask"]>(async () => undefined),
   enqueueCrawl: vi.fn<ApiDeps["enqueueCrawl"]>(async () => undefined),
+  enqueueBatch: vi.fn<ApiDeps["enqueueBatch"]>(async () => undefined),
+  countCrawlPages: vi.fn<ApiDeps["countCrawlPages"]>(async () => 0),
   enqueueExtractor: vi.fn<ApiDeps["enqueueExtractor"]>(async () => undefined),
   listExtractors: vi.fn<ApiDeps["listExtractors"]>(async () => []),
+  listPreparations: vi.fn<ApiDeps["listPreparations"]>(async () => []),
   findLatestExtractor: vi.fn<ApiDeps["findLatestExtractor"]>(async () => null),
   listCrawlPages: vi.fn<ApiDeps["listCrawlPages"]>(async () => ({
     pages: [],

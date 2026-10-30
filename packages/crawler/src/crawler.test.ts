@@ -1,4 +1,5 @@
 import type { CrawledPage, CrawlJob, FetchJob, PageOutcome } from "@scru/core";
+import { convertHtml } from "@scru/parser";
 import { describe, expect, it, vi } from "vitest";
 import { normalizeUrl } from "./normalizeUrl.ts";
 import { isAllowedByRobots, parseRobots } from "./robots.ts";
@@ -91,6 +92,7 @@ const SITE: Record<string, string> = {
 
 const job: CrawlJob = {
   taskId: "task-1",
+  workspaceId: "workspace-1",
   url: "https://shop.example/",
   maxDepth: 2,
   limit: 50,
@@ -134,6 +136,11 @@ const createDeps = () => {
     savePage: vi.fn<CrawlDeps["savePage"]>(async (page) => {
       saved.push(page);
     }),
+    readPage: (html: string) => ({
+      content: convertHtml(html, "markdown"),
+      pageType: null,
+      data: null,
+    }),
     pause: vi.fn<CrawlDeps["pause"]>(async () => undefined),
   };
   return { deps, saved };
@@ -144,7 +151,9 @@ describe("runCrawl", () => {
     const { deps, saved } = createDeps();
     const outcome = await runCrawl(deps, job);
 
-    expect(saved.map(({ position, url, depth }) => [position, url, depth])).toEqual([
+    expect(
+      saved.map(({ position, url, depth }) => [position, url, depth]),
+    ).toEqual([
       [0, "https://shop.example/", 0],
       [1, "https://shop.example/c/1", 1],
       [2, "https://shop.example/c/2", 1],
@@ -199,6 +208,8 @@ describe("runCrawl", () => {
       depth: 1,
       statusCode: null,
       content: null,
+      pageType: null,
+      data: null,
       error: "blocked",
     });
     expect(outcome).toMatchObject({ pagesFetched: 2, pagesFailed: 1 });
