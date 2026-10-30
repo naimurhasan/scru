@@ -4,11 +4,11 @@ Status: planned on 25 Oct 2026. Replaces chapters 2 to 5 of [plan.md](plan.md). 
 
 ## Progress
 
-| Step       | State       | Notes                                                                                                                                                     |
-| ---------- | ----------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1. Fetch   | In progress | `POST` and `GET /v1/fetch` with rendering, page instructions, outputs, CSS extraction, Webshare proxies with country and sessions, and the reCAPTCHA step |
-| 2. Crawl   | Done        | `POST /v1/crawl` as a `CRAWL` task, pages through `GET /v1/crawl/{taskId}/pages`, robots.txt, include and exclude patterns                                |
-| 3. Extract | In progress | `POST /v1/extractors` prepares a versioned extractor per site, `POST /v1/extract` runs it without a model; dashboard, self-repair not yet                 |
+| Step       | State       | Notes                                                                                                                                                                                           |
+| ---------- | ----------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1. Fetch   | In progress | `POST` and `GET /v1/fetch` with rendering, page instructions, outputs, CSS extraction, Webshare proxies with country and sessions, and the reCAPTCHA step                                       |
+| 2. Crawl   | Done        | `POST /v1/crawl` as a `CRAWL` task, pages through `GET /v1/crawl/{taskId}/pages`, robots.txt, include and exclude patterns; `output: "json"` returns records per page                           |
+| 3. Extract | In progress | `POST /v1/extractors` prepares a versioned extractor per site, `POST /v1/extract` runs it without a model and prepares new sites on first use; one dashboard flow per site; self-repair not yet |
 
 What the first Fetch slice settled (25 Oct 2026):
 
@@ -63,7 +63,24 @@ What Extract settled (27 Oct 2026):
 - **Saved as a new version** in `extractors` per workspace and host, with the fetch options; `POST /v1/extract` uses the newest version, picks the page type whose pattern matches segment by segment, fetches the page and applies the selectors. `href` and `src` values come back as full addresses.
 - **Cost:** preparing charges the sample pages at Fetch prices plus 20 credits and needs credits for 16 pages plus 20 to start; extracting costs a Fetch. Failures are free. Needs `OPENROUTER_API_KEY` and `OPENROUTER_MODEL`; without them the worker skips the queue and the API refuses.
 - Checked live with `qwen/qwen3.7-flash` on books.toscrape.com: 11 sample pages and 2 model calls in about 20 s found `product_list` and `product_detail`, every kept field at 100 % fill; extracting an unseen book took 1.1 s and an unseen category returned all 19 books in 0.3 s. Two preparations used 4 model calls. The field list differs between runs, as model answers do.
-- Not built yet: a dashboard page to see and edit an extractor's fields, an Extract engine in the playground, re-preparing automatically when live fill drops, and `extract: "auto"` on Fetch.
+- The Extractors page prepares a site, lists recent preparations (refreshing while one runs) and every version; editing an extractor's fields saves a new version, and requests use the newest one.
+- The playground has an Extract engine that shows the records as a table.
+- Settled 28 Oct 2026, the ZenRows-style flow:
+  - `POST /v1/extract` on a site with no extractor queues a preparation and answers 202 `PREPARING` with the task; requests for the same host while it runs reuse it.
+  - `POST /v1/crawl` with `output: "json"` reads every page with the site's extractor, saving `pageType` and `data` per page. A site with no extractor is prepared inside the crawl task; the crawl reserves the preparation price and charges what it actually cost.
+  - A page whose address matches no pattern falls back to the page type that fills best on it (at least 60 %), so home pages and deeper listing paths are covered.
+  - The extractor page in the dashboard has three tabs: try a page, crawl as JSON (latest crawl with pages, records and the combined JSON), and edit fields.
+- Not built yet: re-preparing automatically when live fill drops, and `extract: "auto"` on Fetch.
+
+What Batch and the dashboard settled (28 Oct 2026):
+
+- **A batch is a `BATCH` task** on its own queue (`url-batch`). `POST /v1/batch` takes 1 to 1,000 addresses from any sites with the crawl's output and fetch options. Results go into `crawl_pages` with the address's position and depth 0, read by `GET /v1/batch/{id}/pages`; `GET /v1/batch/{id}` adds `progress.done` and `progress.total`.
+- **Four pages at a time per batch,** two batches at a time per worker. For `json`, each host's extractor is looked up once, and a host with none is prepared inside the task. Submitting reserves every address plus the preparation price per host that has no extractor.
+- **Cost:** fetched pages at Fetch prices plus what preparing cost; a batch that fetched nothing fails and is free.
+- **Dashboard follows ZenRows:** product tabs and a sidebar group for Fetch, Extract, Crawl and Batch, each its own page; Google search moved to `/dashboard/search`. Extract on a new site shows a "Learning" panel, polls the preparation task every 3 s, then sends the request again and shows the records. Crawl and Batch pages start a task, list recent ones and show the selected one's pages, records and progress.
+- **Home page:** a dark showcase with the five product tabs, drawn scenes instead of photos.
+- Checked live: a 4-book JSON batch learned books.toscrape.com inside the task and returned 4 `product_detail` records for 28 credits; Extract on quotes.toscrape.com/tag/love learned the site in 3 model calls and showed 10 quotes.
+- Not built yet: Browser.
 
 ## Goal
 

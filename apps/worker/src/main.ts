@@ -1,17 +1,21 @@
 import {
   isHttpUrl,
   isPublicUrl,
+  toBatchSettlement,
   toCrawlSettlement,
   toExtractorSettlement,
   toTaskSettlement,
+  type CrawledPage,
   type TaskSettlement,
 } from "@scru/core";
 import {
   createDatabase,
+  findLatestExtractor,
   findWebhookDelivery,
   insertCrawlPage,
   saveExtractor,
   markTaskProcessing,
+  type NewExtractor,
   recordWebhookAttempt,
   settleTask,
 } from "@scru/db";
@@ -26,6 +30,8 @@ import {
 import { createFetchPage, createHttpFetcher } from "@scru/fetcher/http";
 import { createOpenRouterClient } from "@scru/extractor";
 import {
+  BATCH_QUEUE,
+  createBatchWorker,
   createCrawlWorker,
   createExtractorWorker,
   createRenderClient,
@@ -41,6 +47,7 @@ import {
   WEBHOOK_QUEUE,
 } from "@scru/queue";
 import { connectSessionSearch } from "@scru/search";
+import { createBatchProcessor } from "./createBatchProcessor.ts";
 import { createCrawlProcessor } from "./createCrawlProcessor.ts";
 import { createExtractorProcessor } from "./createExtractorProcessor.ts";
 import { createRobotsFetcher } from "./createRobotsFetcher.ts";
@@ -62,6 +69,7 @@ const KEEPER_INTERVAL_MS = 20_000;
 const RENDER_TIMEOUT_MS = 30_000;
 const CRAWL_RENDER_WAIT_MS = 120_000;
 const CRAWL_PAUSE_MS = 500;
+const BATCH_PAGE_CONCURRENCY = 4;
 
 const provider = createCloakBrowserProvider({
   profileDir: env.profileDir,
@@ -131,13 +139,35 @@ const fetchHttp = createHttpFetcher(routes);
 const fetchPage = createFetchPage({ fetchHttp, render: crawlRenders.render });
 const fetchRobots = createRobotsFetcher(fetchHttp);
 
+const preparation = env.openRouter
+  ? {
+      fetchPage,
+      fetchRobots,
+      completeJson: createOpenRouterClient(env.openRouter),
+      model: env.openRouter.model,
+      saveExtractor: (extractor: NewExtractor) =>
+        saveExtractor(database.db, extractor),
+      pauseMs: CRAWL_PAUSE_MS,
+    }
+  : null;
+
+const savePage = (taskId: string, page: CrawledPage) =>
+  insertCrawlPage(database.db, taskId, page);
+
+const siteExtractors = {
+  findLatestExtractor: (workspaceId: string, host: string) =>
+    findLatestExtractor(database.db, workspaceId, host),
+  preparation,
+};
+
 const crawls = createCrawlWorker(
   env.redisUrl,
   withTaskLifecycle(
     createCrawlProcessor({
       fetchPage,
       fetchRobots,
-      savePage: (taskId, page) => insertCrawlPage(database.db, taskId, page),
+      savePage,
+      extractors: siteExtractors,
       pauseMs: CRAWL_PAUSE_MS,
     }),
     toCrawlSettlement,
@@ -145,18 +175,25 @@ const crawls = createCrawlWorker(
   ),
 );
 
-const extractors = env.openRouter
+const batches = createBatchWorker(
+  env.redisUrl,
+  withTaskLifecycle(
+    createBatchProcessor({
+      fetchPage,
+      savePage,
+      extractors: siteExtractors,
+      concurrency: BATCH_PAGE_CONCURRENCY,
+    }),
+    toBatchSettlement,
+    taskHooks,
+  ),
+);
+
+const extractors = preparation
   ? createExtractorWorker(
       env.redisUrl,
       withTaskLifecycle(
-        createExtractorProcessor({
-          fetchPage,
-          fetchRobots,
-          completeJson: createOpenRouterClient(env.openRouter),
-          model: env.openRouter.model,
-          saveExtractor: (extractor) => saveExtractor(database.db, extractor),
-          pauseMs: CRAWL_PAUSE_MS,
-        }),
+        createExtractorProcessor(preparation),
         toExtractorSettlement,
         taskHooks,
       ),
@@ -176,7 +213,7 @@ const webhooks = createWebhookWorker(
 
 search.worker.on("ready", () =>
   console.log(
-    `Worker listening on ${[SEARCH_QUEUE, RENDER_QUEUE, CRAWL_QUEUE, ...(extractors ? [EXTRACTOR_QUEUE] : []), WEBHOOK_QUEUE].join(", ")}`,
+    `Worker listening on ${[SEARCH_QUEUE, RENDER_QUEUE, CRAWL_QUEUE, BATCH_QUEUE, ...(extractors ? [EXTRACTOR_QUEUE] : []), WEBHOOK_QUEUE].join(", ")}`,
   ),
 );
 search.worker.on("completed", (job, outcome) =>
@@ -203,6 +240,14 @@ crawls.worker.on("completed", (job, outcome) =>
 crawls.worker.on("failed", (job, error) =>
   console.error(`Crawl ${job?.data.taskId} crashed: ${error.message}`),
 );
+batches.worker.on("completed", (job, outcome) =>
+  console.log(
+    `Batch ${job.data.taskId}: ${outcome.pagesFetched} pages, ${outcome.pagesFailed} failed`,
+  ),
+);
+batches.worker.on("failed", (job, error) =>
+  console.error(`Batch ${job?.data.taskId} crashed: ${error.message}`),
+);
 extractors?.worker.on("completed", (job, outcome) =>
   console.log(
     `Extractor ${job.data.taskId}: ${outcome.pageTypes.length} page types from ${outcome.pagesFetched} pages, ${outcome.modelCalls} model calls`,
@@ -223,6 +268,7 @@ const shutdown = async () => {
   await search.close();
   await renders.close();
   await crawls.close();
+  await batches.close();
   await extractors?.close();
   await crawlRenders.close();
   await webhooks.close();

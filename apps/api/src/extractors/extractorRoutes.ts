@@ -3,6 +3,7 @@ import { errorResponse } from "../errors/errorResponse.ts";
 import { taskResponseSchema } from "../tasks/schemas.ts";
 import {
   extractorListResponseSchema,
+  extractPreparingResponseSchema,
   extractRequestSchema,
   extractResponseSchema,
   prepareExtractorRequestSchema,
@@ -65,10 +66,19 @@ export const extractRoute = createRoute({
       description: "The page's data",
       content: { "application/json": { schema: extractResponseSchema } },
     },
+    202: {
+      description:
+        "The site has no extractor yet, so one is being prepared; send the request again once the task completes",
+      content: {
+        "application/json": { schema: extractPreparingResponseSchema },
+      },
+    },
     400: errorResponse("The request is invalid"),
     401: errorResponse("The API key is missing, invalid or revoked"),
     403: errorResponse("The workspace does not have enough credits"),
-    404: errorResponse("The site has no extractor for this address"),
+    404: errorResponse(
+      "None of the site's page types fit the page; nothing was charged",
+    ),
     429: errorResponse("The rate or concurrency limit was reached"),
     502: errorResponse("The page could not be fetched; nothing was charged"),
     504: errorResponse("The page did not load in time; nothing was charged"),

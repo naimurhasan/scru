@@ -1,13 +1,15 @@
 import { serve } from "@hono/node-server";
-import type { CrawlJob, ExtractorJob } from "@scru/core";
+import type { BatchJob, CrawlJob, ExtractorJob } from "@scru/core";
 import {
   chargeCredits,
+  countCrawlPages,
   createDatabase,
   createTask,
   findActiveApiKey,
   findLatestExtractor,
   listCrawlPages,
   listExtractors,
+  listTasksOfType,
   findTask,
   findWorkspaceActor,
   insertRequestLog,
@@ -24,6 +26,7 @@ import {
   createSessionPool,
   createTaskQueue,
   createUsageLimiter,
+  BATCH_QUEUE,
   CRAWL_QUEUE,
   EXTRACTOR_QUEUE,
 } from "@scru/queue";
@@ -31,11 +34,14 @@ import { connectSessionSearch } from "@scru/search";
 import { createApp } from "./app.ts";
 import { loadEnv } from "./env.ts";
 
+const RECENT_PREPARATIONS = 20;
+
 const env = loadEnv();
 const database = createDatabase(env.databaseUrl);
 const searchClient = createSearchClient(env.redisUrl, env.syncTimeoutMs);
 const renderClient = createRenderClient(env.redisUrl, env.syncTimeoutMs);
 const crawlQueue = createTaskQueue<CrawlJob>(env.redisUrl, CRAWL_QUEUE);
+const batchQueue = createTaskQueue<BatchJob>(env.redisUrl, BATCH_QUEUE);
 const extractorQueue = createTaskQueue<ExtractorJob>(
   env.redisUrl,
   EXTRACTOR_QUEUE,
@@ -68,11 +74,20 @@ const app = createApp(
       findTask(database.db, workspaceId, taskId),
     enqueueTask: searchClient.enqueueTask,
     enqueueCrawl: crawlQueue.enqueue,
+    enqueueBatch: batchQueue.enqueue,
     enqueueExtractor: extractorQueue.enqueue,
     listExtractors: (workspaceId) => listExtractors(database.db, workspaceId),
+    listPreparations: (workspaceId) =>
+      listTasksOfType(
+        database.db,
+        workspaceId,
+        "EXTRACTOR",
+        RECENT_PREPARATIONS,
+      ),
     findLatestExtractor: (workspaceId, host) =>
       findLatestExtractor(database.db, workspaceId, host),
     listCrawlPages: (taskId, page) => listCrawlPages(database.db, taskId, page),
+    countCrawlPages: (taskId) => countCrawlPages(database.db, taskId),
     limits: usage.limiter,
   },
   {
@@ -92,6 +107,7 @@ const shutdown = async () => {
   await searchClient.close();
   await renderClient.close();
   await crawlQueue.close();
+  await batchQueue.close();
   await extractorQueue.close();
   usage.close();
   sessions.close();

@@ -26,19 +26,19 @@ const unavailable = (durationMs: number): PlaygroundResponse => ({
 export const callApi = async (
   workspaceId: string,
   path: string,
-  body: unknown,
+  body?: unknown,
 ): Promise<PlaygroundResponse> => {
   const startedAt = Date.now();
   try {
     const response = await fetch(`${env.API_URL}${path}`, {
-      method: "POST",
+      method: body === undefined ? "GET" : "POST",
       cache: "no-store",
       headers: {
         "Content-Type": "application/json",
         "X-Internal-Token": env.INTERNAL_API_TOKEN,
         "X-Workspace-Id": workspaceId,
       },
-      body: JSON.stringify(body),
+      ...(body !== undefined && { body: JSON.stringify(body) }),
     });
     return {
       status: response.status,

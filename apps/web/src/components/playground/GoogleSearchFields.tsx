@@ -15,11 +15,11 @@ export function GoogleSearchFields({
 }: GoogleSearchFieldsProps) {
   return (
     <>
-      <div className="grid gap-2">
+      <div className="grid gap-2 sm:col-span-full">
         <Label htmlFor="query">Query</Label>
         <Textarea
           id="query"
-          rows={3}
+          rows={2}
           required
           maxLength={500}
           value={request.query}

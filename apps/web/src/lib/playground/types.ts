@@ -1,6 +1,6 @@
 import type { FetchOutput } from "@scru/core";
 
-export type Engine = "google" | "fetch";
+export type Engine = "google" | "fetch" | "extract";
 
 export type GoogleSearchRequest = {
   query: string;
@@ -17,6 +17,10 @@ export type FetchRequest = {
   country: string;
 };
 
+export type ExtractRequest = {
+  url: string;
+};
+
 export type PlaygroundResponse = {
   status: number;
   durationMs: number;
@@ -31,4 +35,9 @@ export type PlaygroundRun =
       request: GoogleSearchRequest;
       response: PlaygroundResponse;
     }
-  | { engine: "fetch"; request: FetchRequest; response: PlaygroundResponse };
+  | { engine: "fetch"; request: FetchRequest; response: PlaygroundResponse }
+  | {
+      engine: "extract";
+      request: ExtractRequest;
+      response: PlaygroundResponse;
+    };

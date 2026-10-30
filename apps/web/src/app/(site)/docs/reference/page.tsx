@@ -3,6 +3,7 @@ import { CodeBlock } from "@/components/dashboard/CodeBlock";
 import { DocsSection } from "@/components/docs/DocsSection";
 import { FieldTable } from "@/components/docs/FieldTable";
 import {
+  BATCH_REQUEST_FIELDS,
   CRAWL_PAGE_FIELDS,
   CRAWL_REQUEST_FIELDS,
   ERROR_CODES,
@@ -170,7 +171,9 @@ export default function ReferencePage() {
         <p>
           Each fetched page costs what a Fetch with the same options costs, and
           the total is charged when the crawl finishes. To start, the workspace
-          needs enough credits for <code>limit</code> pages.
+          needs enough credits for <code>limit</code> pages. A json crawl of a
+          site with no extractor also needs the price of preparing one, and is
+          charged what preparing actually cost.
         </p>
       </DocsSection>
 
@@ -228,14 +231,62 @@ export default function ReferencePage() {
         />
         <FieldTable fields={EXTRACT_RESULT_FIELDS} />
         <p>
-          An address that matches none of the extractor&apos;s page types
-          answers 404 with the patterns it knows.
+          A page none of the extractor&apos;s page types fit answers 404 with
+          the patterns it knows, and nothing is charged.
+        </p>
+        <h3 className="font-medium">Sites with no extractor yet</h3>
+        <p>
+          You can skip the preparing step. The first{" "}
+          <code>POST /v1/extract</code> for a new site starts preparing it and
+          answers 202 with{" "}
+          <code>&quot;status&quot;: &quot;PREPARING&quot;</code> and the task.
+          Requests for the same site while it prepares get the same task. Once
+          the task completes, send the request again for the page&apos;s data.
         </p>
         <h3 className="font-medium">Price</h3>
         <p>
           Preparing costs the sample pages it fetches, priced like Fetch, plus
           20 credits; to start it, the workspace needs enough for 16 pages plus
           20. Extracting a page costs the same as fetching it. Failures are
+          free.
+        </p>
+      </DocsSection>
+
+      <DocsSection id="batch" title="Batch">
+        <CodeBlock
+          label="Endpoints"
+          code={[
+            "POST /v1/batch",
+            "GET  /v1/batch/{taskId}",
+            "GET  /v1/batch/{taskId}/pages?after=…&limit=…",
+          ].join("\n")}
+        />
+        <p>
+          Sends a list of addresses as one job. The batch runs in the
+          background as a task. <code>GET /v1/batch/{"{taskId}"}</code> shows
+          the task with <code>progress.done</code> and{" "}
+          <code>progress.total</code>, and the pages endpoint returns each
+          result in the order the addresses were sent, with the same fields as
+          crawl pages.
+        </p>
+        <h3 className="font-medium">Body</h3>
+        <FieldTable fields={BATCH_REQUEST_FIELDS} />
+        <CodeBlock
+          code={buildCurlSnippet(env.API_URL, "/v1/batch", {
+            urls: [
+              "https://books.toscrape.com/catalogue/sharp-objects_997/index.html",
+              "https://quotes.toscrape.com/tag/love/",
+            ],
+            output: "json",
+          })}
+          label="Request"
+        />
+        <h3 className="font-medium">Price</h3>
+        <p>
+          Each fetched page costs what a Fetch with the same options costs, and
+          the total is charged when the batch finishes. To start, the workspace
+          needs enough credits for every address, plus the price of preparing
+          each site a json batch has no extractor for yet. Pages that fail are
           free.
         </p>
       </DocsSection>

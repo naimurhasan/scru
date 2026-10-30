@@ -1,8 +1,8 @@
+import { calculatePreparationCredits } from "../credits/calculatePreparationCredits.ts";
 import type { TaskSettlement } from "../tasks/types.ts";
 import type { ExtractorOutcome } from "./types.ts";
 
 const BAD_GATEWAY = 502;
-export const PREPARATION_CREDITS = 20;
 
 export const toExtractorSettlement = (
   outcome: ExtractorOutcome,
@@ -26,6 +26,9 @@ export const toExtractorSettlement = (
     ok: true,
     result,
     loggedResult: result,
-    cost: outcome.pagesFetched * outcome.creditsPerPage + PREPARATION_CREDITS,
+    cost: calculatePreparationCredits(
+      outcome.pagesFetched,
+      outcome.creditsPerPage,
+    ),
   };
 };

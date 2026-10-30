@@ -1,8 +1,5 @@
 import type { ExtractorJob, ExtractorOutcome } from "@scru/core";
-import {
-  createQueueWorker,
-  type QueueProcessor,
-} from "./createQueueWorker.ts";
+import { createQueueWorker, type QueueProcessor } from "./createQueueWorker.ts";
 import { EXTRACTOR_QUEUE } from "./queueNames.ts";
 
 export type ExtractorProcessor = QueueProcessor<ExtractorJob, ExtractorOutcome>;

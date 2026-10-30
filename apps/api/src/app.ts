@@ -9,6 +9,7 @@ import { registerFetch } from "./fetch/registerFetch.ts";
 import { registerGoogleSearch } from "./google/registerGoogleSearch.ts";
 import { enforceRateLimit } from "./limits/enforceRateLimit.ts";
 import { registerTaskRoutes } from "./tasks/registerTaskRoutes.ts";
+import { registerBatchRoutes } from "./batch/registerBatchRoutes.ts";
 import { registerCrawlRoutes } from "./crawl/registerCrawlRoutes.ts";
 import { registerExtractorRoutes } from "./extractors/registerExtractorRoutes.ts";
 
@@ -53,6 +54,7 @@ export const createApp = (deps: ApiDeps, config: ApiConfig) => {
   registerFetch(app, deps, config);
   registerTaskRoutes(app, deps, config);
   registerCrawlRoutes(app, deps, config);
+  registerBatchRoutes(app, deps, config);
   registerExtractorRoutes(app, deps, config);
 
   return app;

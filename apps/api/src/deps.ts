@@ -1,4 +1,5 @@
 import type {
+  BatchJob,
   CrawlJob,
   ExtractorJob,
   StoredExtractor,
@@ -31,8 +32,10 @@ export type ApiDeps = {
   findTask: (workspaceId: string, taskId: string) => Promise<Task | null>;
   enqueueTask: (job: GoogleSearchJob, priority: number) => Promise<void>;
   enqueueCrawl: (job: CrawlJob, priority: number) => Promise<void>;
+  enqueueBatch: (job: BatchJob, priority: number) => Promise<void>;
   enqueueExtractor: (job: ExtractorJob, priority: number) => Promise<void>;
   listExtractors: (workspaceId: string) => Promise<StoredExtractor[]>;
+  listPreparations: (workspaceId: string) => Promise<Task[]>;
   findLatestExtractor: (
     workspaceId: string,
     host: string,
@@ -41,6 +44,7 @@ export type ApiDeps = {
     taskId: string,
     page: { after: number; limit: number },
   ) => Promise<CrawlPageList>;
+  countCrawlPages: (taskId: string) => Promise<number>;
   limits: UsageLimiter;
 };
 

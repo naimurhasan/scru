@@ -148,6 +148,8 @@ export const crawlPages = pgTable(
     depth: integer("depth").notNull(),
     statusCode: integer("status_code"),
     content: text("content"),
+    pageType: text("page_type"),
+    data: jsonb("data"),
     error: text("error"),
     createdAt: createdAt(),
   },

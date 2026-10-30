@@ -5,6 +5,7 @@ import { callApi } from "@/lib/playground/callApi";
 import { FETCH_OUTPUT_VALUES } from "@/lib/playground/fetchOutputs";
 import { toFetchBody } from "@/lib/playground/toFetchBody";
 import type {
+  ExtractRequest,
   FetchRequest,
   GoogleSearchRequest,
   PlaygroundResponse,
@@ -28,6 +29,10 @@ const fetchSchema = z.object({
   country: z.string().regex(/^([A-Z]{2})?$/),
 });
 
+const extractSchema = z.object({
+  url: z.string().trim().min(1).max(2_000),
+});
+
 export const sendGoogleSearch = async (
   input: GoogleSearchRequest,
 ): Promise<PlaygroundResponse> => {
@@ -48,4 +53,16 @@ export const sendFetch = async (
     "/v1/fetch",
     toFetchBody(fetchSchema.parse(input)),
   );
+};
+
+export const sendExtract = async (
+  input: ExtractRequest,
+): Promise<PlaygroundResponse> => {
+  const { workspace } = await requireWorkspace();
+  return callApi(workspace.id, "/v1/extract", extractSchema.parse(input));
+};
+
+export const readTask = async (taskId: string): Promise<PlaygroundResponse> => {
+  const { workspace } = await requireWorkspace();
+  return callApi(workspace.id, `/v1/async/task/${z.uuid().parse(taskId)}`);
 };

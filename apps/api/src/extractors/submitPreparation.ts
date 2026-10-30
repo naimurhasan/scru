@@ -1,15 +1,10 @@
-import { calculateFetchCredits, PREPARATION_CREDITS } from "@scru/core";
+import { calculateFetchCredits, calculatePreparationCredits } from "@scru/core";
 import type { RequestActor, Task } from "@scru/db";
 import { MAX_SAMPLE_PAGES } from "@scru/extractor";
 import type { ApiConfig, ApiDeps } from "../deps.ts";
-import { ApiError } from "../errors/ApiError.ts";
+import { invalidField } from "../errors/invalidField.ts";
 import { queueTask } from "../tasks/queueTask.ts";
 import type { PrepareExtractorRequest } from "./schemas.ts";
-
-const unavailable = (field: string, message: string) =>
-  new ApiError("VALIDATION_ERROR", "The request is invalid", [
-    { field, message },
-  ]);
 
 export const submitPreparation = (
   deps: Pick<ApiDeps, "createTask" | "enqueueExtractor">,
@@ -19,9 +14,9 @@ export const submitPreparation = (
 ): Promise<Task> => {
   const { priority, idempotencyKey, webhook, ...options } = request;
   if (!config.extractorsEnabled)
-    throw unavailable("url", "Extractors are not available");
+    throw invalidField("url", "Extractors are not available");
   if (options.premiumProxy && !config.proxiesEnabled)
-    throw unavailable("premiumProxy", "Premium proxies are not available");
+    throw invalidField("premiumProxy", "Premium proxies are not available");
   const perPage = calculateFetchCredits({
     jsRender: options.jsRender,
     premiumProxy: options.premiumProxy,
@@ -32,7 +27,7 @@ export const submitPreparation = (
     priority,
     idempotencyKey: idempotencyKey ?? null,
     webhookUrl: webhook?.url ?? null,
-    cost: perPage * MAX_SAMPLE_PAGES + PREPARATION_CREDITS,
+    cost: calculatePreparationCredits(MAX_SAMPLE_PAGES, perPage),
     enqueue: (task) =>
       deps.enqueueExtractor(
         {

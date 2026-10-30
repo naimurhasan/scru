@@ -4,6 +4,11 @@ export {
   type OpenRouterOptions,
 } from "./createOpenRouterClient.ts";
 export {
+  extractPage,
+  findPageType,
+  type ExtractedPage,
+} from "./extractPage.ts";
+export {
   prepareExtractor,
   type PreparedExtractor,
   type SamplePage,

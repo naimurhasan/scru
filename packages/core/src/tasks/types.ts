@@ -7,7 +7,7 @@ export const TASK_STATUSES = [
 
 export type TaskStatus = (typeof TASK_STATUSES)[number];
 
-export const TASK_TYPES = ["GOOGLE", "CRAWL", "EXTRACTOR"] as const;
+export const TASK_TYPES = ["GOOGLE", "CRAWL", "EXTRACTOR", "BATCH"] as const;
 
 export type TaskType = (typeof TASK_TYPES)[number];
 

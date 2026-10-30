@@ -1,7 +1,6 @@
 import { calculateFetchCredits, type PageFailureReason } from "@scru/core";
 import type { RequestActor } from "@scru/db";
-import { matchesUrlPattern } from "@scru/extractor";
-import { extractPageType } from "@scru/parser";
+import { extractPage } from "@scru/extractor";
 import type { ApiDeps } from "../deps.ts";
 import { ApiError } from "../errors/ApiError.ts";
 import { insufficientCredits } from "../requests/insufficientCredits.ts";
@@ -30,19 +29,6 @@ export const executeExtract = async (
         "No extractor for this site yet. Prepare one with POST /v1/extractors.",
       ),
     };
-  const pageType = extractor.pageTypes.find(({ pattern }) =>
-    matchesUrlPattern(pattern, url),
-  );
-  if (!pageType)
-    return {
-      ok: false,
-      error: new ApiError(
-        "NOT_FOUND",
-        "The site's extractor has no page type for this address",
-        { patterns: extractor.pageTypes.map(({ pattern }) => pattern) },
-      ),
-    };
-
   const cost = calculateFetchCredits({
     jsRender: extractor.fetchOptions.jsRender,
     premiumProxy: extractor.fetchOptions.proxy !== null,
@@ -51,6 +37,21 @@ export const executeExtract = async (
 
   const outcome = await deps.fetchPage({ ...extractor.fetchOptions, url });
   if (!outcome.ok) return { ok: false, error: toFetchError(outcome.reason) };
+
+  const extracted = extractPage(
+    extractor.pageTypes,
+    outcome.page.html,
+    outcome.page.url,
+  );
+  if (!extracted)
+    return {
+      ok: false,
+      error: new ApiError(
+        "NOT_FOUND",
+        "None of the site's page types fit this page; nothing was charged",
+        { patterns: extractor.pageTypes.map(({ pattern }) => pattern) },
+      ),
+    };
 
   const creditsRemaining = await deps.chargeCredits(actor.workspaceId, cost);
   if (creditsRemaining === null) return insufficientCredits(cost);
@@ -63,8 +64,8 @@ export const executeExtract = async (
         url: outcome.page.url,
         statusCode: outcome.page.status,
         extractor: { id: extractor.id, version: extractor.version },
-        pageType: pageType.name,
-        data: extractPageType(outcome.page.html, pageType, outcome.page.url),
+        pageType: extracted.pageType,
+        data: extracted.data,
       },
     },
     creditsCharged: cost,
