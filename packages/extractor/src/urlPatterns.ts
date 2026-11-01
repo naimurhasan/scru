@@ -13,22 +13,38 @@ const shapeOf = (url: string) =>
 
 const toPattern = (shape: string[]) => `/${shape.join("/")}`;
 
-const parentKey = (shape: string[]) =>
-  `${shape.length}:${shape.slice(0, -1).join("/")}`;
+const siblingKey = (shape: string[], index: number) =>
+  `${shape.length}:${index}:${shape.with(index, "").join("/")}`;
+
+const countBy = <Item>(items: Item[], keyOf: (item: Item) => string) => {
+  const counts = new Map<string, number>();
+  for (const item of items) {
+    const key = keyOf(item);
+    counts.set(key, (counts.get(key) ?? 0) + 1);
+  }
+  return counts;
+};
 
 export const groupUrlsByPattern = (urls: string[]): UrlGroup[] => {
   const shapes = urls.map((url) => ({ url, shape: shapeOf(url) }));
+  const repeats = countBy(shapes, ({ shape }) => toPattern(shape));
   const siblings = new Map<string, Set<string>>();
   for (const { shape } of shapes) {
-    const key = parentKey(shape);
-    siblings.set(key, (siblings.get(key) ?? new Set()).add(shape.at(-1) ?? ""));
+    shape.forEach((segment, index) => {
+      const key = siblingKey(shape, index);
+      siblings.set(key, (siblings.get(key) ?? new Set()).add(segment));
+    });
   }
   const groups = new Map<string, string[]>();
   for (const { url, shape } of shapes) {
     const merged =
-      shape.length > 0 && (siblings.get(parentKey(shape))?.size ?? 0) > 1
-        ? [...shape.slice(0, -1), WILDCARD]
-        : shape;
+      (repeats.get(toPattern(shape)) ?? 0) > 1
+        ? shape
+        : shape.map((segment, index) =>
+            (siblings.get(siblingKey(shape, index))?.size ?? 0) > 1
+              ? WILDCARD
+              : segment,
+          );
     const pattern = toPattern(merged);
     groups.set(pattern, [...(groups.get(pattern) ?? []), url]);
   }

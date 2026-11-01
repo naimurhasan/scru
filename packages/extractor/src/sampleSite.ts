@@ -52,8 +52,11 @@ export const sampleSite = async (
         allowed(link),
     );
   const targets = pickPageGroups(
-    groupUrlsByPattern([...new Set(links)]),
-  ).flatMap(({ urls }) => urls.slice(0, PAGES_PER_GROUP));
+    groupUrlsByPattern([start, ...new Set(links)]),
+    start,
+  ).flatMap(({ urls }) =>
+    urls.filter((link) => link !== start).slice(0, PAGES_PER_GROUP),
+  );
 
   const pages: SamplePage[] = [{ url: start, html: first.page.html }];
   for (const target of targets) {

@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { pickPageGroups } from "./pickPageGroups.ts";
 import { groupUrlsByPattern, matchesUrlPattern } from "./urlPatterns.ts";
 
 const site = "https://books.toscrape.com";
@@ -34,6 +35,50 @@ describe("groupUrlsByPattern", () => {
       "/author/*",
       "/about",
     ]);
+  });
+
+  it("merges pages that differ in any one segment, like a product name before its id", () => {
+    const groups = groupUrlsByPattern([
+      "https://shop.example/Wireless-Mouse/dp/B004YAVF8I",
+      "https://shop.example/Gaming-Mouse/dp/B07GBZ4Q68",
+      "https://shop.example/Mouse-M185/dp/B0CFH1Z6TQ",
+    ]);
+
+    expect(groups.map(({ pattern, urls }) => [pattern, urls.length])).toEqual([
+      ["/*/dp/*", 3],
+    ]);
+  });
+
+  it("keeps a page that repeats with different queries as its own group", () => {
+    const groups = groupUrlsByPattern([
+      "https://shop.example/s?k=mouse",
+      "https://shop.example/s?k=mouse&page=2",
+      "https://shop.example/deals",
+      "https://shop.example/coupons",
+    ]);
+
+    expect(groups.map(({ pattern, urls }) => [pattern, urls.length])).toEqual([
+      ["/s", 2],
+      ["/*", 2],
+    ]);
+  });
+});
+
+describe("pickPageGroups", () => {
+  const group = (pattern: string, size: number) => ({
+    pattern,
+    urls: Array.from({ length: size }, (_, index) => `${pattern}#${index}`),
+  });
+
+  it("always keeps the start page's group first, even when it is small", () => {
+    const groups = [group("/a", 9), group("/b", 8), group("/c", 7)];
+    const start = group("/s", 1);
+
+    expect(
+      pickPageGroups([...groups, start], start.urls[0]).map(
+        ({ pattern }) => pattern,
+      ),
+    ).toEqual(["/s", "/a", "/b"]);
   });
 });
 
