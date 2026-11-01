@@ -41,10 +41,10 @@ export const readPageTypeAnswer = (answer: unknown): PageTypeAnswer | null => {
   const parsed = pageTypeAnswerSchema.safeParse(answer);
   if (!parsed.success) return null;
   const seen = new Set<string>();
-  const fields = parsed.data.fields.filter(({ name }) => {
-    if (seen.has(name)) return false;
+  const fields = parsed.data.fields.filter(({ name, selector }) => {
+    if (!selector || seen.has(name)) return false;
     seen.add(name);
     return true;
   });
-  return { ...parsed.data, fields };
+  return fields.length > 0 ? { ...parsed.data, fields } : null;
 };

@@ -49,6 +49,7 @@ export const prepareExtractor = async (
 
   for (const group of pickPageGroups(
     groupUrlsByPattern([...htmlByUrl.keys()]),
+    samples[0]?.url,
   )) {
     const pages = group.urls.flatMap((url) => htmlByUrl.get(url) ?? []);
     const promptPages = pages.slice(0, PROMPT_PAGES);

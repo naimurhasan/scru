@@ -33,6 +33,17 @@ describe("detectChallenge", () => {
     );
   });
 
+  it("spots the Akamai interstitial even with status 200", () => {
+    expect(
+      detectChallenge(
+        page(
+          200,
+          '<meta http-equiv="refresh" content="5; URL=\'/s?k=mouse&bm-verify=AAQ\'" />',
+        ),
+      ),
+    ).toBe("akamai");
+  });
+
   it.each([
     [
       403,
