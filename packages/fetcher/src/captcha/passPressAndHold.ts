@@ -113,8 +113,17 @@ export const passPressAndHold = async (
 
   for (let attempt = 0; attempt < attempts; attempt++) {
     const timeout = holdTimeoutMs ?? HOLD_TIMEOUTS_MS[attempt] ?? 25_000;
-    if (await holdAttempt(tab, timeout, boxPollMs, tremorMinMs, tremorMaxMs))
-      return "solved";
+    try {
+      if (await holdAttempt(tab, timeout, boxPollMs, tremorMinMs, tremorMaxMs))
+        return "solved";
+    } catch {
+      const remaining = await tab
+        .locator(WIDGET)
+        .count()
+        .catch(() => -1);
+      if (remaining === 0) return "solved";
+      if (remaining < 0 || tab.isClosed()) return "failed";
+    }
     await sleep(rand(...RETRY_PAUSE_MS));
   }
   return "failed";
