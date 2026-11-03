@@ -25,6 +25,7 @@ import {
   createWebshareRoutes,
   directRoute,
   harvestSession,
+  passPressAndHold,
   passRecaptcha,
 } from "@scru/fetcher";
 import { createFetchPage, createHttpFetcher } from "@scru/fetcher/http";
@@ -126,6 +127,11 @@ const renders = createRenderWorker(
     options: {
       timeoutMs: RENDER_TIMEOUT_MS,
       passCaptcha: async (tab) => {
+        const hold = await passPressAndHold(tab);
+        if (hold !== "absent") {
+          console.log(`Press&Hold on ${tab.url()}: ${hold}`);
+          if (hold === "solved") return;
+        }
         const result = await passRecaptcha(tab, solveRecaptcha);
         if (result !== "absent")
           console.log(`CAPTCHA on ${tab.url()}: ${result}`);
