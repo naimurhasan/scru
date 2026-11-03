@@ -48,7 +48,7 @@ export const prepareExtractor = async (
   const pageTypes: PageType[] = [];
 
   for (const group of pickPageGroups(
-    groupUrlsByPattern([...htmlByUrl.keys()]),
+    groupUrlsByPattern([...htmlByUrl.keys()], samples[0]?.url),
     samples[0]?.url,
   )) {
     const pages = group.urls.flatMap((url) => htmlByUrl.get(url) ?? []);

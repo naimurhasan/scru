@@ -84,11 +84,13 @@ describe("sampleSite", () => {
     expect(deps.fetchPage).toHaveBeenCalledTimes(1);
   });
 
-  it("returns nothing when robots.txt forbids the start page", async () => {
+  it("fetches only the pasted page when robots.txt forbids the site", async () => {
     const deps = createDeps();
     deps.fetchRobots.mockResolvedValue("User-agent: *\nDisallow: /");
     await sampleSite(deps, "https://shop.example/", options);
 
-    expect(deps.fetchPage).not.toHaveBeenCalled();
+    expect(deps.fetchPage.mock.calls.map(([job]) => job.url)).toEqual([
+      "https://shop.example/",
+    ]);
   });
 });
