@@ -46,6 +46,17 @@ describe("detectChallenge", () => {
 
   it.each([
     [
+      202,
+      "<script>window.awsWafCookieDomainList = ['imdb.com'];</script>",
+      "aws_waf",
+    ],
+    [200, "<title>Robot or human?</title>", "perimeterx"],
+  ])("spots a %i interstitial", (status, html, reason) => {
+    expect(detectChallenge(page(status, html))).toBe(reason);
+  });
+
+  it.each([
+    [
       403,
       '<script src="https://challenges.cloudflare.com/x"></script>',
       "cloudflare",
