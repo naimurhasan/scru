@@ -62,6 +62,22 @@ describe("groupUrlsByPattern", () => {
       ["/*", 2],
     ]);
   });
+
+  it("keeps the pasted page as its own group even when it appears once", () => {
+    const groups = groupUrlsByPattern(
+      [
+        "https://shop.example/search?q=mouse",
+        "https://shop.example/deals",
+        "https://shop.example/coupons",
+      ],
+      "https://shop.example/search?q=mouse",
+    );
+
+    expect(groups.map(({ pattern, urls }) => [pattern, urls.length])).toEqual([
+      ["/*", 2],
+      ["/search", 1],
+    ]);
+  });
 });
 
 describe("pickPageGroups", () => {

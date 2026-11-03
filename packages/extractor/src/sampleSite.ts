@@ -31,15 +31,12 @@ export const sampleSite = async (
   options: Omit<FetchJob, "url">,
 ): Promise<SiteSample> => {
   const start = normalizeUrl(url);
-  const { origin, hostname: host, pathname } = new URL(start);
+  const { origin, hostname: host } = new URL(start);
   const robots = parseRobots((await deps.fetchRobots(origin)) ?? "");
   const allowed = (link: string) => {
     const target = new URL(link);
     return isAllowedByRobots(robots, `${target.pathname}${target.search}`);
   };
-  if (!isAllowedByRobots(robots, pathname))
-    return { pages: [], pagesFetched: 0 };
-
   const first = await deps.fetchPage({ ...options, url: start });
   if (!first.ok) return { pages: [], pagesFetched: 0 };
 
@@ -52,7 +49,7 @@ export const sampleSite = async (
         allowed(link),
     );
   const targets = pickPageGroups(
-    groupUrlsByPattern([start, ...new Set(links)]),
+    groupUrlsByPattern([start, ...new Set(links)], start),
     start,
   ).flatMap(({ urls }) =>
     urls.filter((link) => link !== start).slice(0, PAGES_PER_GROUP),

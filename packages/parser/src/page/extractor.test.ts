@@ -31,6 +31,36 @@ describe("simplifyHtml", () => {
   it("cuts to the size limit", () => {
     expect(simplifyHtml(listing, 40)).toHaveLength(40);
   });
+
+  it("drops site navigation and keeps the main content", () => {
+    const simple = simplifyHtml(
+      `<body><header><a href="/">Home</a></header><nav><a href="/a">A</a></nav><main><article><header><h1>Red chair</h1></header></article></main><footer>About</footer></body>`,
+      10_000,
+    );
+
+    expect(simple).toBe(
+      "<main><article><header><h1>Red chair</h1></header></article></main>",
+    );
+  });
+
+  it("brings the record list forward when a long page would cut it off", () => {
+    const filters = Array.from(
+      { length: 200 },
+      (_, index) => `<label>Filter ${index}</label>`,
+    ).join("");
+    const records = Array.from(
+      { length: 5 },
+      (_, index) =>
+        `<li><a href="/p/${index}">Product number ${index}</a><span class="price">$${index}.00</span></li>`,
+    ).join("");
+    const simple = simplifyHtml(
+      `<body><div class="filters">${filters}</div><ul class="results">${records}</ul></body>`,
+      2_000,
+    );
+
+    expect(simple.length).toBeLessThanOrEqual(2_000);
+    expect(simple).toContain('<ul class="results"><li><a href="/p/0">');
+  });
 });
 
 describe("extractPageType", () => {

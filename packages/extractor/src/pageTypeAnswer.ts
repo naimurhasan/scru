@@ -42,7 +42,8 @@ export const readPageTypeAnswer = (answer: unknown): PageTypeAnswer | null => {
   if (!parsed.success) return null;
   const seen = new Set<string>();
   const fields = parsed.data.fields.filter(({ name, selector }) => {
-    if (!selector || seen.has(name)) return false;
+    if ((!selector && !parsed.data.itemSelector) || seen.has(name))
+      return false;
     seen.add(name);
     return true;
   });

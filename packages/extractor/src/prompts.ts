@@ -28,6 +28,7 @@ const RULES = [
   "Pick the 3 to 12 fields a person would most want from this kind of page, such as names, prices, links, images, ratings, dates and descriptions.",
   "Prefer class, id and itemprop selectors over positions like :nth-child, so the selectors keep working on other pages of the same kind.",
   "Prefer semantic tags and stable attributes such as h1, h2, itemprop, data-* and aria-label over styling classes for size, color or spacing, which change between layouts.",
+  "When the page lists repeated records such as products, results, jobs, posts or repositories, set itemSelector to one record and pick fields of each record, not page-level details like result counts, headings or the search query.",
   "Skip navigation, headers, footers, ads and anything that is the same on every page of the site.",
   "When a link or image holds the full value in an attribute such as title, href or src, read that attribute.",
 ];

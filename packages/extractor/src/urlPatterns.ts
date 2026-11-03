@@ -25,7 +25,10 @@ const countBy = <Item>(items: Item[], keyOf: (item: Item) => string) => {
   return counts;
 };
 
-export const groupUrlsByPattern = (urls: string[]): UrlGroup[] => {
+export const groupUrlsByPattern = (
+  urls: string[],
+  fixedUrl?: string,
+): UrlGroup[] => {
   const shapes = urls.map((url) => ({ url, shape: shapeOf(url) }));
   const repeats = countBy(shapes, ({ shape }) => toPattern(shape));
   const siblings = new Map<string, Set<string>>();
@@ -38,7 +41,7 @@ export const groupUrlsByPattern = (urls: string[]): UrlGroup[] => {
   const groups = new Map<string, string[]>();
   for (const { url, shape } of shapes) {
     const merged =
-      (repeats.get(toPattern(shape)) ?? 0) > 1
+      url === fixedUrl || (repeats.get(toPattern(shape)) ?? 0) > 1
         ? shape
         : shape.map((segment, index) =>
             (siblings.get(siblingKey(shape, index))?.size ?? 0) > 1
