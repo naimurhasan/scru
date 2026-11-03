@@ -3,6 +3,7 @@ import Link from "next/link";
 import { CodeBlock } from "@/components/dashboard/CodeBlock";
 import { FeatureCard } from "@/components/site/FeatureCard";
 import { ProductShowcase } from "@/components/site/showcase/ProductShowcase";
+import { TestedSites } from "@/components/site/TestedSites";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import { EXAMPLE_RESPONSE } from "@/lib/docs/examples";
@@ -47,6 +48,8 @@ export default function HomePage() {
           <ProductShowcase />
         </div>
       </section>
+
+      <TestedSites />
 
       <section className="border-t">
         <div className="mx-auto grid max-w-6xl gap-12 px-6 py-16 lg:grid-cols-[1fr_minmax(0,1.1fr)] lg:items-center">
