@@ -11,6 +11,11 @@ export {
   type RecaptchaTask,
 } from "./captcha/createTwoCaptchaSolver.ts";
 export { passRecaptcha, type CaptchaResult } from "./captcha/passRecaptcha.ts";
+export {
+  passPressAndHold,
+  type PressAndHoldOptions,
+  type PressAndHoldResult,
+} from "./captcha/passPressAndHold.ts";
 export { renderPage, type RenderOptions } from "./page/renderPage.ts";
 export { harvestSession } from "./harvest/harvestSession.ts";
 export { createCloakBrowserProvider } from "./providers/cloakBrowserProvider.ts";
