@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="360" viewBox="0 0 1280 360" font-family="Inter, 'Segoe UI', Helvetica, Arial, sans-serif">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0b0b0f"/>
+      <stop offset="1" stop-color="#16131f"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#8b5cf6"/>
+      <stop offset="1" stop-color="#2dd4bf"/>
+    </linearGradient>
+    <pattern id="grid" width="32" height="32" patternUnits="userSpaceOnUse">
+      <path d="M32 0H0V32" fill="none" stroke="#ffffff" stroke-opacity="0.04"/>
+    </pattern>
+  </defs>
+  <rect width="1280" height="360" rx="20" fill="url(#bg)"/>
+  <rect width="1280" height="360" rx="20" fill="url(#grid)"/>
+
+  <text x="72" y="132" fill="#ffffff" font-size="72" font-weight="700" letter-spacing="-2">scru</text>
+  <rect x="74" y="152" width="96" height="5" rx="2.5" fill="url(#accent)"/>
+  <text x="72" y="210" fill="#f4f4f5" font-size="30" font-weight="600">Turn any website into clean data</text>
+  <text x="72" y="250" fill="#a1a1aa" font-size="19">Fetch · Extract · Crawl · Batch · Google search</text>
+  <text x="72" y="300" fill="#71717a" font-size="16" font-family="ui-monospace, Menlo, monospace">POST /v1/extract  { "url": "https://…" }</text>
+
+  <g transform="translate(700 64)">
+    <rect width="230" height="232" rx="14" fill="#18181b" stroke="#27272a"/>
+    <circle cx="20" cy="20" r="5" fill="#3f3f46"/>
+    <circle cx="36" cy="20" r="5" fill="#3f3f46"/>
+    <circle cx="52" cy="20" r="5" fill="#3f3f46"/>
+    <rect x="16" y="44" width="198" height="56" rx="8" fill="#27272a"/>
+    <rect x="16" y="112" width="150" height="10" rx="5" fill="#3f3f46"/>
+    <rect x="16" y="132" width="110" height="10" rx="5" fill="#3f3f46"/>
+    <rect x="16" y="160" width="198" height="56" rx="8" fill="#27272a"/>
+    <text x="16" y="250" fill="#71717a" font-size="13" font-family="ui-monospace, Menlo, monospace">any page</text>
+  </g>
+
+  <g transform="translate(948 180)">
+    <path d="M0 0H44" stroke="#8b5cf6" stroke-width="3" stroke-linecap="round"/>
+    <path d="M34 -9L46 0L34 9" fill="none" stroke="#2dd4bf" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+
+  <g transform="translate(1012 64)" font-family="ui-monospace, Menlo, monospace" font-size="13">
+    <rect width="208" height="232" rx="14" fill="#18181b" stroke="#27272a"/>
+    <text x="16" y="30" fill="#a1a1aa">[</text>
+    <text x="28" y="54" fill="#a1a1aa">{</text>
+    <text x="40" y="78"><tspan fill="#c4b5fd">"title"</tspan><tspan fill="#a1a1aa">: </tspan><tspan fill="#5eead4">"Mouse"</tspan></text>
+    <text x="40" y="102"><tspan fill="#c4b5fd">"price"</tspan><tspan fill="#a1a1aa">: </tspan><tspan fill="#5eead4">"$14.85"</tspan></text>
+    <text x="40" y="126"><tspan fill="#c4b5fd">"rating"</tspan><tspan fill="#a1a1aa">: </tspan><tspan fill="#5eead4">"4.4"</tspan></text>
+    <text x="28" y="150" fill="#a1a1aa">},</text>
+    <text x="28" y="174" fill="#a1a1aa">{ … }</text>
+    <text x="16" y="198" fill="#a1a1aa">]</text>
+    <text x="16" y="250" fill="#71717a">clean JSON</text>
+  </g>
+</svg>
