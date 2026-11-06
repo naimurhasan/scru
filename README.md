@@ -4,6 +4,7 @@
 
 <p align="center">
   A self-hosted scraping API. Fetch any page, get any site as JSON without writing selectors, crawl a whole site or send a thousand addresses as one job.
+  <br><sub>Inspired by <a href="https://www.zenrows.com">ZenRows</a>.</sub>
 </p>
 
 <p align="center">
@@ -88,17 +89,16 @@ The first call for a new site answers `"status": "PREPARING"` with a task id. Po
 ## How Extract learns a site
 
 ```mermaid
-flowchart LR
-    A[Pasted page] --> B[Fetch the page]
-    B --> C[Group its links<br/>by URL shape]
-    C --> D[Fetch 5 pages<br/>of up to 3 groups]
-    D --> E[Strip menus and footers,<br/>bring the record list forward]
-    E --> F[AI writes CSS selectors<br/>per page type]
-    F --> G{Fields fill on<br/>unseen pages?}
-    G -- weak --> H[AI repairs<br/>empty fields]
-    H --> I
-    G -- yes --> I[(Saved extractor)]
-    I --> J[Later requests:<br/>match URL pattern,<br/>run selectors, no AI]
+flowchart TD
+    A([Pasted page]) --> B[Fetch it and group its links by URL shape]
+    B --> C[Fetch 5 pages from up to 3 groups]
+    C --> D[Strip menus and footers, bring records forward]
+    D --> E[AI writes CSS selectors for each page type]
+    E --> F{Do fields fill on unseen pages?}
+    F -- no --> G[AI repairs the empty fields]
+    G --> H[(Saved extractor)]
+    F -- yes --> H
+    H --> I([Later requests: match the URL pattern and run the selectors, no AI])
 ```
 
 - **Learned once, reused for free.** The AI is only called while learning. After that, extraction is plain CSS selectors, so it is fast and costs the same as a Fetch.
